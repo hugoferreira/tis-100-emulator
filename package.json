@@ -1,0 +1,26 @@
+{
+  "name": "tis-100-emulator",
+  "version": "1.0.0",
+  "description": "TIS-100 Emulator",
+  "author": "Hugo Sereno Ferreira",
+  "license": "ISC",
+  "@std/esm": "cjs",
+  "main": "main.js",
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "lodash": "^4.17.10",
+    "parsimmon": "^1.7.3"
+  },
+  "devDependencies": {
+    "@types/blessed": "^0.1.10",
+    "@types/lodash": "^4.14.109",
+    "@types/parsimmon": "^1.6.2",
+    "npm": "^6.0.1",
+    "ts-node": "^6.0.3",
+    "typescript": "^2.8.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build; node build/main.js"
+  }
+}
