@@ -61,26 +61,26 @@ export class UserInterface {
             let toRight: Blessed.Widgets.BoxElement
             let fromRight: Blessed.Widgets.BoxElement
 
-            if (col !== r.length - 1) {
-                toRight = Blessed.box({ ...arrowStyle, top: (top + 6), left: (left + 25) })
-                fromRight = Blessed.box({ ...arrowStyle, top, left: (left + 25) })
-                this.screen.append(toRight)
-                this.screen.append(fromRight)
-            }
-
-            return (() => {
-                if (unit != undefined) {
-                    box.setContent(unit.prettyPrint())
-                    acc.setContent(`{#787878-fg}ACC{/}\n${unit.acc.toString()}`)
-                    bak.setContent(`{#787878-fg}BAK{/}\n(${unit.acc.toString()})`)
-                    mode.setContent(`{#787878-fg}MODE{/}\n${unit.status.toString()}`)
-
-                    if (col !== r.length - 1) {
-                        toRight.setContent(`${unit.peekRight()}\n{#787878-fg}==>{/}`)
-                        fromRight.setContent(`{#787878-fg}<=={/}\n${0}`)
-                    }
+            if (unit !== undefined) {
+                if (unit.right !== undefined) {
+                    toRight = Blessed.box({ ...arrowStyle, top: (top + 6), left: (left + 25) })
+                    fromRight = Blessed.box({ ...arrowStyle, top, left: (left + 25) })
+                    this.screen.append(toRight)
+                    this.screen.append(fromRight)
                 }
-            })
+
+                return (() => {
+                        box.setContent(unit.prettyPrint())
+                        acc.setContent(`{#787878-fg}ACC{/}\n${unit.acc.toString()}`)
+                        bak.setContent(`{#787878-fg}BAK{/}\n(${unit.acc.toString()})`)
+                        mode.setContent(`{#787878-fg}MODE{/}\n${unit.status.toString()}`)
+
+                        if (unit.right !== undefined) {
+                            toRight.setContent(`${unit.rightValue}\n{#787878-fg}==>{/}`)
+                            fromRight.setContent(`{#787878-fg}<=={/}\n${unit.leftValue}`)
+                        }
+                })
+            } else return (() => {})
         }))
 
         this.screen.render()
