@@ -35,6 +35,8 @@ export class Unit {
             case 'ACC': return this.acc
             case 'LEFT': return await this.left.dequeue()
             case 'RIGHT': return await this.right.dequeue()
+            case 'UP': return await this.up.dequeue()
+            case 'DOWN': return await this.down.dequeue()
             default: return <number>r
         }
     }
@@ -44,8 +46,10 @@ export class Unit {
 
         switch (r) {
             case 'ACC': this.acc = v; break
-            case 'RIGHT': await this.right.enqueue(v); break
             case 'LEFT': await this.left.enqueue(v); break
+            case 'RIGHT': await this.right.enqueue(v); break
+            case 'UP': await this.up.enqueue(v); break
+            case 'DOWN': await this.down.enqueue(v); break
         }
     }
 
