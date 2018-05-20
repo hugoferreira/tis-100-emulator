@@ -9,6 +9,8 @@ export class Unit {
     acc = 0
     bak = 0
     status = 'IDLE'
+    requestedCycles = 0
+    executedCycles = 0
 
     constructor(readonly id: string,
         private source: string,
@@ -16,8 +18,11 @@ export class Unit {
         public right?: AsyncQueue<number>,
         public up?: AsyncQueue<number>,
         public down?: AsyncQueue<number>) {
+
+        this.source = source.trim().toLowerCase().split('\n').map(l => l.trim()).join('\n')
+
         try {
-            this.program = <Line[]>Lang.Program.tryParse(source.trim().toUpperCase())
+            this.program = <Line[]>Lang.Program.tryParse(source.toUpperCase())
         } catch {
             this.program = undefined
         }
@@ -28,7 +33,8 @@ export class Unit {
 
         switch (r) {
             case 'ACC': return this.acc
-            case 'LEFT': return this.left.dequeue()
+            case 'LEFT': return await this.left.dequeue()
+            case 'RIGHT': return await this.right.dequeue()
             default: return <number>r
         }
     }
@@ -38,12 +44,14 @@ export class Unit {
 
         switch (r) {
             case 'ACC': this.acc = v; break
-            case 'RIGHT': this.right.enqueue(v); break
+            case 'RIGHT': await this.right.enqueue(v); break
+            case 'LEFT': await this.left.enqueue(v); break
         }
     }
 
     async step() {
-        if (this.program !== undefined) {
+        this.requestedCycles += 1
+        if (this.program !== undefined && (this.status == 'RUN' || this.status == 'IDLE')) {
             this.ip = this.nextIp
             const exp = this.program[this.ip]
 
@@ -57,6 +65,7 @@ export class Unit {
 
             this.nextIp = (this.ip + 1) % this.program.length
             this.status = 'RUN'
+            this.executedCycles += 1
         }
     }
 
@@ -68,17 +77,7 @@ export class Unit {
         return this.source.trim().split('\n').map((l, i) => (i == this.ip) ? `{#00ffff-fg}${l}{/}` : l).join('\n')
     }
 
-    peekLeft() {
-        if (this.left !== undefined) {
-            const r = this.left.last
-            return (r !== undefined) ? r.toString() : '?'
-        } return '?'
-    }
-
-    peekRight() {
-        if (this.right !== undefined) {
-            const r = this.right.last
-            return (r !== undefined) ? r.toString() : '?'
-        } return '?'
-    }
+    get idleness() { return 1 - (this.executedCycles / this.requestedCycles) }
+    get leftValue() { return '?' }
+    get rightValue() { return '?' }
 }

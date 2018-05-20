@@ -48,20 +48,23 @@ export class UserInterface {
             const left = 5 + col * 30
             const top = 2 + row * 11
 
-            const box = Blessed.box({ ...textAreaStyle, top, left })
-            const acc = Blessed.box({ ...infoStyle, top: 0 })
-            const bak = Blessed.box({ ...infoStyle, top: 2 })
-            const mode = Blessed.box({ ...infoStyle, top: 4 })
-
-            box.append(acc)
-            box.append(bak)
-            box.append(mode)
-            this.screen.append(box)
-
-            let toRight: Blessed.Widgets.BoxElement
-            let fromRight: Blessed.Widgets.BoxElement
-
             if (unit !== undefined) {
+                const box = Blessed.box({ ...textAreaStyle, top, left })
+                this.screen.append(box)
+
+                const acc = Blessed.box({ ...infoStyle, top: 0 })
+                const bak = Blessed.box({ ...infoStyle, top: 2 })
+                const mode = Blessed.box({ ...infoStyle, top: 4 })
+                const idle = Blessed.box({ ...infoStyle, top: 6 })
+
+                box.append(acc)
+                box.append(bak)
+                box.append(mode)
+                box.append(idle)
+
+                let toRight: Blessed.Widgets.BoxElement
+                let fromRight: Blessed.Widgets.BoxElement
+
                 if (unit.right !== undefined) {
                     toRight = Blessed.box({ ...arrowStyle, top: (top + 6), left: (left + 25) })
                     fromRight = Blessed.box({ ...arrowStyle, top, left: (left + 25) })
@@ -74,13 +77,17 @@ export class UserInterface {
                         acc.setContent(`{#787878-fg}ACC{/}\n${unit.acc.toString()}`)
                         bak.setContent(`{#787878-fg}BAK{/}\n(${unit.acc.toString()})`)
                         mode.setContent(`{#787878-fg}MODE{/}\n${unit.status.toString()}`)
+                    idle.setContent(`{#787878-fg}IDLE{/}\n${Math.round(unit.idleness * 100).toString()}%`)
 
                         if (unit.right !== undefined) {
                             toRight.setContent(`${unit.rightValue}\n{#787878-fg}==>{/}`)
                             fromRight.setContent(`{#787878-fg}<=={/}\n${unit.leftValue}`)
                         }
                 })
-            } else return (() => {})
+            } else {
+                this.screen.append(Blessed.box({ ...textAreaStyle, top, left, align: 'center', content: '-//-' }))
+                return (() => {})
+            }
         }))
 
         this.screen.render()

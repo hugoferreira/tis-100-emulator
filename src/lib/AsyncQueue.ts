@@ -2,26 +2,28 @@ import { AsyncSemaphore } from './AsyncSemaphore'
 
 export class AsyncQueue<T> {
     private queue = Array<T>()
-    private waitingEnqueue: AsyncSemaphore
-    private waitingDequeue: AsyncSemaphore
+    private fillCount: AsyncSemaphore
+    private emptyCount: AsyncSemaphore
     public last: T
 
+    get isEmpty() { return this.queue.length === 0}
+
     constructor(readonly maxSize: number) {
-        this.waitingEnqueue = new AsyncSemaphore(0)
-        this.waitingDequeue = new AsyncSemaphore(maxSize)
+        this.fillCount = new AsyncSemaphore(0)
+        this.emptyCount = new AsyncSemaphore(maxSize)
     }
 
     async enqueue(x: T) {
         this.last = x
-        await this.waitingDequeue.wait()
+        await this.emptyCount.wait()
         this.queue.unshift(x)
-        this.waitingEnqueue.signal()
+        this.fillCount.signal()
     }
 
     async dequeue() {
-        this.waitingDequeue.signal()
-        await this.waitingEnqueue.wait()
-        const x = this.queue.pop()!
-        return x
+        this.emptyCount.signal()
+        await this.fillCount.wait()
+        const result = this.queue.pop()!
+        return result
     }
 }
