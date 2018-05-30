@@ -28,7 +28,7 @@ export const Lang = P.createLanguage({
     Operand: (r) => P.alt(r.Number, r.Register).trim(r._),
     Separator: (r) => P.string(',').trim(r._),
     Register: () => P.alt(...Registers.map(P.string)),
-    Number: () => P.regexp(/[0-9]+/).map(Number),
+    Number: () => P.regexp(/-?[0-9]+/).map(Number),
     Label: () => P.regex(/[A-Z]+[A-Z0-9]*/).skip(P.string(':')).map(m => ({ 'label' : m })),
     LabelJump: (r) => P.seq(P.alt(...Jumps.map(P.string)).trim(r._), P.regex(/[A-Z]+[A-Z0-9]*/)).map(p => ({ op : p[0], ref: p[1] })),
     BinOp: (r) => P.seq(P.alt(...BinaryOps.map(P.string)), r.Operand, r.Separator, r.Operand)
