@@ -64,24 +64,32 @@ export class UserInterface {
 
                 let toRight: Blessed.Widgets.BoxElement
                 let fromRight: Blessed.Widgets.BoxElement
+                let fromUp: Blessed.Widgets.BoxElement
+                let toUp: Blessed.Widgets.BoxElement
 
                 if (unit.right !== undefined) {
                     toRight = Blessed.box({ ...arrowStyle, top: (top + 6), left: (left + 25) })
                     fromRight = Blessed.box({ ...arrowStyle, top, left: (left + 25) })
+                    toUp = Blessed.box({ ...arrowStyle, top: (top - 3), left })
+                    fromUp = Blessed.box({ ...arrowStyle, top: (top - 3), left: (left + 20) })
                     this.screen.append(toRight)
                     this.screen.append(fromRight)
+                    this.screen.append(fromUp)
+                    this.screen.append(toUp)
                 }
 
                 return (() => {
                         box.setContent(unit.prettyPrint())
                         acc.setContent(`{#787878-fg}ACC{/}\n${unit.acc.toString()}`)
-                        bak.setContent(`{#787878-fg}BAK{/}\n(${unit.acc.toString()})`)
+                        bak.setContent(`{#787878-fg}BAK{/}\n(${unit.bak.toString()})`)
                         mode.setContent(`{#787878-fg}MODE{/}\n${unit.status.toString()}`)
-                    idle.setContent(`{#787878-fg}IDLE{/}\n${Math.round(unit.idleness * 100).toString()}%`)
+                        idle.setContent(`{#787878-fg}IDLE{/}\n${Math.round(unit.idleness * 100).toString()}%`)
 
                         if (unit.right !== undefined) {
                             toRight.setContent(`${unit.rightValue}\n{#787878-fg}==>{/}`)
                             fromRight.setContent(`{#787878-fg}<=={/}\n${unit.leftValue}`)
+                            toUp.setContent(`{#787878-fg}^{/} ${unit.rightValue}`)
+                            fromUp.setContent(`${unit.leftValue} {#787878-fg}v{/}`)
                         }
                 })
             } else {
