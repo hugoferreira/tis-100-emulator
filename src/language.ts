@@ -3,11 +3,8 @@ import * as P from 'parsimmon'
 type BinaryOp = 'MOV'
 const BinaryOps: BinaryOp[] = ['MOV']
 
-type UnaryOp = 'ADD' | 'SUB'
-const UnaryOps: UnaryOp[] = ['ADD', 'SUB']
-
-type RelativeJump = 'JRO'
-const RelativeJumps: RelativeJump[] = ['JRO']
+type UnaryOp = 'ADD' | 'SUB' | 'JRO'
+const UnaryOps: UnaryOp[] = ['ADD', 'SUB', 'JRO']
 
 type Jump = 'JEZ' | 'JNZ' | 'JLZ' | 'JGZ' | 'JMP'
 const Jumps: Jump[] = ['JEZ', 'JNZ', 'JLZ', 'JGZ', 'JMP']
@@ -18,15 +15,14 @@ const SingletonOps: SingletonOp[] = ['NOP', 'NEG', 'SAV', 'SWP']
 export type Register = 'LEFT' | 'RIGHT' | 'UP' | 'DOWN' | 'ACC' | 'NIL'
 const Registers: Register[] = ['LEFT', 'RIGHT', 'UP', 'DOWN', 'ACC', 'NIL']
 
-export type Op = BinaryOp | UnaryOp | SingletonOp | Jump | RelativeJump
-const Ops: Op[] = Array.prototype.concat(BinaryOps, UnaryOps, SingletonOps, Jumps, RelativeJumps)
+export type Op = BinaryOp | UnaryOp | SingletonOp | Jump
+const Ops: Op[] = Array.prototype.concat(BinaryOps, UnaryOps, SingletonOps, Jumps)
 
 export type Line =
     { op: SingletonOp }
   | { op: UnaryOp, a: number | Register }
   | { op: BinaryOp, a: number | Register, b: Register }
   | { op: Jump, a: number }
-  | { op: RelativeJump, a: Register }
 
 export const Lang = P.createLanguage({
     Operand: (r) => P.alt(r.Number, r.Register).trim(r._),
