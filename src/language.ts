@@ -24,21 +24,26 @@ export type Line =
   | { op: BinaryOp, a: number | Register, b: Register }
   | { op: Jump, a: number }
 
+const keywords = (ss: string[]) => P.alt(...ss.map(P.string)).trim(P.optWhitespace)
+
 export const Lang = P.createLanguage({
-    Operand: (r) => P.alt(r.Number, r.Register).trim(r._),
-    Separator: (r) => P.string(',').trim(r._),
-    Register: () => P.alt(...Registers.map(P.string)),
-    Number: () => P.regexp(/-?[0-9]+/).map(Number),
-    Label: () => P.regex(/[A-Z]+[A-Z0-9]*/).skip(P.string(':')).map(m => ({ 'label' : m })),
-    LabelJump: (r) => P.seq(P.alt(...Jumps.map(P.string)).trim(r._), P.regex(/[A-Z]+[A-Z0-9]*/)).map(p => ({ op : p[0], ref: p[1] })),
-    BinOp: (r) => P.seq(P.alt(...BinaryOps.map(P.string)), r.Operand, r.Separator, r.Operand)
-        .map(p => ({ 'op': p[0], 'a': p[1], 'b': p[3] })),
-    UnOp: (r) => P.seq(P.alt(...UnaryOps.map(P.string)), r.Operand)
-        .map(p => ({ 'op': p[0], 'a': p[1] })),
-    Op: (r) => P.alt(...SingletonOps.map(P.string)).map(p => ({ 'op': p })),
-    Instruction: (r) => P.alt(r.Label, P.alt(r.BinOp, r.UnOp, r.Op, r.LabelJump)).trim(r._),
-    Program: (r) => r.Instruction.atLeast(1),
-    _: () => P.optWhitespace
+        Operand: (r) => P.alt(r.Number, r.Register).trim(r._),
+      Separator: ()  => P.string(','),
+       Register: ()  => keywords(Registers),
+         Number: ()  => P.regexp(/-?[0-9]+/).map(Number),
+        LabelId: ()  => P.regex(/[A-Z]+[A-Z0-9]*/),
+          Label: (r) => r.LabelId.skip(P.string(':')).map(m => ({ label: m })),
+      LabelJump: (r) => P.seq(keywords(Jumps), r.LabelId)
+                         .map(p => ({ op: p[0], ref: p[1] })),
+          BinOp: (r) => P.seq(keywords(BinaryOps), r.Operand, r.Separator, r.Operand)
+                         .map(p => ({ op: p[0], a: p[1], b: p[3] })),
+           UnOp: (r) => P.seq(keywords(UnaryOps), r.Operand)
+                         .map(p => ({ op: p[0], a: p[1] })),
+             Op: ()  => P.alt(keywords(SingletonOps))
+                         .map(p => ({ op: p })),
+    Instruction: (r) => P.alt(r.BinOp, r.UnOp, r.Op, r.LabelJump),
+        Program: (r) => P.alt(r.Label, r.Instruction).trim(r._).atLeast(1),
+              _: ()  => P.optWhitespace
 })
 
 export function Compile(source: String): [Line[], number[]] {
