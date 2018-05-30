@@ -1,8 +1,9 @@
 import { AsyncQueue } from './lib/AsyncQueue'
-import { Line, Lang, Register } from './language'
+import { Line, Lang, Register, Compile } from './language'
 
 export class Unit {
     private program: Line[]
+    private mappings: Map<number, number>
 
     ip = 0
     nextIp = 0
@@ -19,10 +20,11 @@ export class Unit {
         public up?: AsyncQueue<number>,
         public down?: AsyncQueue<number>) {
 
-        this.source = source.trim().toLowerCase().split('\n').map(l => l.trim()).join('\n')
-
         try {
-            this.program = <Line[]>Lang.Program.tryParse(source.toUpperCase())
+            this.source = source.trim().toLowerCase().split('\n').map(l => l.trim()).join('\n')
+            const compiled = Compile(source)
+            this.program = compiled[0]
+            this.mappings = compiled[1]
         } catch {
             this.program = undefined
         }
@@ -55,6 +57,8 @@ export class Unit {
 
     async step() {
         this.requestedCycles += 1
+        let jmpIp = undefined
+
         if (this.program !== undefined && (this.status == 'RUN' || this.status == 'IDLE')) {
             this.ip = this.nextIp
             const exp = this.program[this.ip]
@@ -63,11 +67,19 @@ export class Unit {
                 case 'MOV': await this.write(exp.b, await this.read(exp.a)); break
                 case 'ADD': this.acc += await this.read(exp.a); break
                 case 'SUB': this.acc -= await this.read(exp.a); break
+
+                case 'JMP': jmpIp = exp.a; break
+                case 'JEZ': if (this.acc == 0) jmpIp = exp.a; break
+                case 'JNZ': if (this.acc != 0) jmpIp = exp.a; break
+                case 'JGZ': if (this.acc > 0) jmpIp = exp.a; break
+                case 'JLZ': if (this.acc < 0) jmpIp = exp.a; break
+
+                case 'NEG': this.acc = -this.acc; break
                 case 'SAV': this.bak = this.acc; break
                 case 'SWP': const tmp = this.bak; this.bak = this.acc, this.acc = tmp; break
             }
 
-            this.nextIp = (this.ip + 1) % this.program.length
+            this.nextIp = jmpIp || ((this.ip + 1) % this.program.length)
             this.status = 'RUN'
             this.executedCycles += 1
         }
@@ -78,7 +90,7 @@ export class Unit {
     }
 
     prettyPrint() {
-        return this.source.trim().split('\n').map((l, i) => (i == this.ip) ? `{#00ffff-fg}${l}{/}` : l).join('\n')
+        return this.source.trim().split('\n').map((l, i) => (i == this.mappings.get(this.ip)) ? `{#00ffff-fg}${l}{/}` : l).join('\n')
     }
 
     get idleness() { return 1 - (this.executedCycles / this.requestedCycles) }
