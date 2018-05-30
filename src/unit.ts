@@ -3,7 +3,7 @@ import { Line, Lang, Register, Compile } from './language'
 
 export class Unit {
     private program: Line[]
-    private mappings: Map<number, number>
+    private mappings: Array<number>
 
     ip = 0
     nextIp = 0
@@ -90,7 +90,7 @@ export class Unit {
     }
 
     prettyPrint() {
-        return this.source.trim().split('\n').map((l, i) => (i == this.mappings.get(this.ip)) ? `{#00ffff-fg}${l}{/}` : l).join('\n')
+        return this.source.trim().split('\n').map((l, i) => (i == this.mappings[this.ip]) ? `{#00ffff-fg}${l}{/}` : l).join('\n')
     }
 
     get idleness() { return 1 - (this.executedCycles / this.requestedCycles) }

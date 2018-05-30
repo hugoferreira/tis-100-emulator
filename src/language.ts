@@ -45,12 +45,12 @@ export const Lang = P.createLanguage({
     _: () => P.optWhitespace
 })
 
-export function Compile(source: String): [Line[], Map<number, number>] {
+export function Compile(source: String): [Line[], number[]] {
     // FIXME: Let the grammar handle the trims and casing
     // FIXME: Migrate to a typed grammar
     const firstStage = <Array<any>>Lang.Program.tryParse(source.toUpperCase())
     const labels = new Map<String, number>()
-    const mappings = new Map<number, number>()
+    const mappings = Array<number>()
     const result = Array<Line>()
 
     firstStage.forEach((op, lno) => {
@@ -58,7 +58,7 @@ export function Compile(source: String): [Line[], Map<number, number>] {
         else {
             if ('ref' in op) op.a = labels.get(op.ref)
             result.push(op)
-            mappings.set(result.length-1, lno)
+            mappings.push(lno)
         }
     })
 
