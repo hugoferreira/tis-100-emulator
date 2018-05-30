@@ -73,13 +73,14 @@ export class Unit {
                 case 'JNZ': if (this.acc != 0) jmpIp = exp.a; break
                 case 'JGZ': if (this.acc > 0) jmpIp = exp.a; break
                 case 'JLZ': if (this.acc < 0) jmpIp = exp.a; break
+                case 'JRO': jmpIp = this.ip + await this.read(exp.a); break
 
                 case 'NEG': this.acc = -this.acc; break
                 case 'SAV': this.bak = this.acc; break
                 case 'SWP': const tmp = this.bak; this.bak = this.acc, this.acc = tmp; break
             }
 
-            this.nextIp = jmpIp || ((this.ip + 1) % this.program.length)
+            this.nextIp = (jmpIp || (this.ip + 1)) % this.program.length
             this.status = 'RUN'
             this.executedCycles += 1
         }
