@@ -24,14 +24,14 @@ export type Line =
   | { op: BinaryOp, a: number | Register, b: Register }
   | { op: Jump, a: number }
 
-const keywords = (ss: string[]) => P.alt(...ss.map(P.string)).trim(P.optWhitespace)
+const keywords = <T extends string>(ss: T[]) => P.alt(...ss.map(P.string)).trim(P.optWhitespace) as P.Parser<T>
 
 export const Lang = P.createLanguage({
         Operand: (r) => P.alt(r.Number, r.Register).trim(r._),
       Separator: ()  => P.string(','),
        Register: ()  => keywords(Registers),
          Number: ()  => P.regexp(/-?[0-9]+/).map(Number),
-        LabelId: ()  => P.regex(/[A-Z]+[A-Z0-9]*/),
+        LabelId: ()  => P.regexp(/[A-Z]+[A-Z0-9]*/),
           Label: (r) => r.LabelId.skip(P.string(':')).map(m => ({ label: m })),
       LabelJump: (r) => P.seq(keywords(Jumps), r.LabelId)
                          .map(p => ({ op: p[0], ref: p[1] })),
@@ -49,7 +49,7 @@ export const Lang = P.createLanguage({
 export function Compile(source: String): [Line[], number[]] {
     // FIXME: Let the grammar handle the trims and casing
     // FIXME: Migrate to a typed grammar
-    const firstStage = <Array<any>>Lang.Program.tryParse(source.toUpperCase())
+    const firstStage = Lang.Program.tryParse(source.toUpperCase()) as Array<any>
     const labels = new Map<String, number>()
     const mappings = Array<number>()
     const result = Array<Line>()
@@ -63,5 +63,5 @@ export function Compile(source: String): [Line[], number[]] {
         }
     })
 
-    return [<Line[]>result, mappings]
+    return [result as Line[], mappings]
 }
