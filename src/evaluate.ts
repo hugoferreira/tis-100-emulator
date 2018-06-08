@@ -10,12 +10,15 @@ async function evaluate(testSuite: Array<[number, number]>, units: Array<Unit>, 
 
     units.push(inA, outA)
 
-    const step = async () => {
-        await Promise.race(units.map(u => u.step()))
-        return (outA.result.length !== testSuite.length) ? step() : outA.result
+    const simulate = async () => {
+        while (outA.result.length !== testSuite.length) {
+            await Promise.race(units.map(u => u.step()))
+        }
+
+        return outA.result
     }
 
-    return _.zip(outValues, await step() as number[])
+    return _.zip(outValues, await simulate() as number[])
 }
 
 function fitness(testResults: Array<[number, number]>) {
