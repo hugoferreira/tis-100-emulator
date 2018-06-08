@@ -1,12 +1,12 @@
 import * as Blessed from 'blessed'
 import * as _ from 'lodash'
-import { Unit } from './unit'
+import { ComputingUnit } from './unit'
 
 export class UserInterface {
     screen: Blessed.Widgets.Screen
     updates: (() => void)[][]
 
-    constructor(readonly unitsArray: Unit[][]) {
+    constructor(readonly unitsArray: ComputingUnit[][]) {
         this.screen = Blessed.screen({
             smartCSR: true,
             useBCE: true,

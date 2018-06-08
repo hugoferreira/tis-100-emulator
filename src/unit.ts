@@ -1,7 +1,42 @@
 import { AsyncQueue } from './lib/AsyncQueue'
 import { Line, Lang, Register, Compile } from './language'
 
-export class Unit {
+export interface Unit {
+    step()
+}
+
+export class Input implements Unit {
+    status = 'IDLE'
+
+    constructor(private input: Array<number>, private register: AsyncQueue<number>) { }
+
+    async step() {
+        if (this.status == 'RUN' || this.status == 'IDLE') {
+            this.status = 'WRTE'
+            if (this.input.length > 0) {
+                this.register.enqueue(this.input.shift())
+                this.status = 'RUN'
+            } else this.status = 'IDLE'
+        }
+    }
+}
+
+export class Output implements Unit {
+    status = 'IDLE'
+    result = Array<number>()
+
+    constructor(private register: AsyncQueue<number>) { }
+
+    async step() {
+        if (this.status == 'RUN' || this.status == 'IDLE') {
+            this.status = 'READ'
+            this.result.push(await this.register.dequeue())
+            this.status = 'RUN'
+        }
+    }
+}
+
+export class ComputingUnit implements Unit {
     private program: Line[]
     private mappings: Array<number>
 
@@ -15,10 +50,10 @@ export class Unit {
 
     constructor(readonly id: string,
         private source: string,
-        public left?: AsyncQueue<number>,
-        public right?: AsyncQueue<number>,
-        public up?: AsyncQueue<number>,
-        public down?: AsyncQueue<number>) {
+        public left: AsyncQueue<number> = new AsyncQueue<number>(0),
+        public right: AsyncQueue<number> = new AsyncQueue<number>(0),
+        public up: AsyncQueue<number> = new AsyncQueue<number>(0),
+        public down: AsyncQueue<number> = new AsyncQueue<number>(0)) {
 
         try {
             this.source = source.trim().toLowerCase().split('\n').map(l => l.trim()).join('\n')
