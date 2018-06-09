@@ -1,46 +1,43 @@
 import { AsyncQueue } from './lib/AsyncQueue'
 import { UserInterface } from './consoleui'
-import { ComputingUnit } from './unit'
+import { ComputingUnit, Source } from './unit'
 
 (async () => {
-    const p2 = `mov 5, acc
+    const p1 = `mov 5, acc
                 add acc
                 sub acc
                 add 20
                 mov  acc,    right
                 sub  right `
 
-    const p3 = `sub left
+    const p2 = `sub left
                 add 10
                 swp
                 mov acc, left`
 
-    const p4 = ` mov 1, acc
+    const p3 = ` mov 1, acc
                 repeat:
                  add acc
                  jmp repeat`
 
-    const p5 = ` mov -1, acc
+    const p4 = ` mov -1, acc
                 repeat:
                  nop
                  jro acc`
 
-    const u11u12 = new AsyncQueue<number>(0)
-    const u11u21 = new AsyncQueue<number>(0)
-    const u21u31 = new AsyncQueue<number>(0)
+    const unitsArray = [0, 1, 2].map(r => [0, 1, 2, 3].map(c => new ComputingUnit()));
 
-    const input = new AsyncQueue<number>(0)
+    [0, 1].forEach(r => [0, 1, 2].forEach(c => {
+            unitsArray[r][c].right = unitsArray[r][c + 1].left
+            unitsArray[r][c].down  = unitsArray[r + 1][c].up
+    }))
 
-    input.enqueue(10)
-    input.enqueue(20)
-    input.enqueue(30)
-    input.enqueue(40)
+    unitsArray[0][0].init(p1)
+    unitsArray[0][1].init(p2)
+    unitsArray[0][2].init(p3)
+    unitsArray[0][3].init(p4)
 
-    const unitsArray = [
-        [new ComputingUnit('U11', p2, undefined, u11u12, input, u11u21), new ComputingUnit('U12', p3, u11u12, undefined), new ComputingUnit('U12', p5, undefined, undefined), undefined],
-        [undefined, undefined, undefined, undefined],
-        [undefined, undefined, undefined, undefined]
-    ]
+    new Source([10, 20, 30, 40], unitsArray[0][0].up)
 
     const gui = new UserInterface(unitsArray)
     gui.run()

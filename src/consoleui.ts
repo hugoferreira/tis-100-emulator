@@ -46,7 +46,7 @@ export class UserInterface {
 
         this.updates = unitsArray.map((r, row) => r.map((unit, col) => {
             const left = 5 + col * 30
-            const top = 2 + row * 11
+            const top = 2 + row * 12
 
             if (unit !== undefined) {
                 const box = Blessed.box({ ...textAreaStyle, top, left })

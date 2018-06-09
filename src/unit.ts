@@ -7,7 +7,7 @@ export interface Unit {
     step()
 }
 
-export class Input implements Unit {
+export class Source implements Unit {
     status = 'IDLE'
 
     constructor(private input: Array<number>, private register: AsyncQueue<number>) { }
@@ -23,7 +23,7 @@ export class Input implements Unit {
     }
 }
 
-export class Output implements Unit {
+export class Sink implements Unit {
     status = 'IDLE'
     result = Array<number>()
 
@@ -44,23 +44,25 @@ export class ComputingUnit implements Unit {
     private mappings: Array<number>
 
     // Registers
-    acc = 0
-    bak = 0
+    acc: number
+    bak: number
     left = new AsyncQueue<number>(0)
     right = new AsyncQueue<number>(0)
     up = new AsyncQueue<number>(0)
     down = new AsyncQueue<number>(0)
 
     // Execution
-    ip = 0
-    nextIp = 0
-    status = 'IDLE'
-    requestedCycles = 0
-    executedCycles = 0
+    ip: number
+    nextIp: number
+    status: 'IDLE' | 'READ' | 'WRTE' | 'RUN'
+    requestedCycles: number
+    executedCycles: number
 
-    constructor(readonly id: string,
-        private source: string) {
+    constructor(private source?: string) {
+       if (source != '') this.init(source)
+    }
 
+    init(source: string) {
         try {
             this.source = source.trim().toLowerCase().split('\n').map(l => l.trim()).join('\n')
             const compiled = Compile(source)
@@ -69,6 +71,14 @@ export class ComputingUnit implements Unit {
         } catch {
             this.program = undefined
         }
+
+        this.ip = 0
+        this.nextIp = 0
+        this.status = 'IDLE'
+        this.requestedCycles = 0
+        this.executedCycles = 0
+        this.acc = 0
+        this.bak = 0
     }
 
     private async read(r: Register | number) {
@@ -128,11 +138,11 @@ export class ComputingUnit implements Unit {
     }
 
     toString() {
-        return `[${this.id}: ${this.status}]  ip: ${this.ip}  acc: ${this.acc}  bak: ${this.bak}`
+        return `[${this.status}]  ip: ${this.ip}  acc: ${this.acc}  bak: ${this.bak}`
     }
 
     prettyPrint() {
-        return this.source.trim().split('\n').map((l, i) => (i == this.mappings[this.ip]) ? `{#00ffff-fg}${l}{/}` : l).join('\n')
+        return (this.program !== undefined) ? this.source.trim().split('\n').map((l, i) => (i == this.mappings[this.ip]) ? `{#00ffff-fg}${l}{/}` : l).join('\n') : ''
     }
 
     get idleness() { return 1 - (this.executedCycles / this.requestedCycles) }
