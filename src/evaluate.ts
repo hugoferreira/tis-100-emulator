@@ -1,35 +1,26 @@
 import { AsyncQueue } from './lib/AsyncQueue'
-import { ComputingUnit, Input, Output, Unit } from './unit'
-import * as _ from 'lodash'
+import { Input, Output, Unit, RegisterQueue } from './unit'
 
-async function evaluate(testSuite: Array<[number, number]>, units: Array<Unit>, map: [AsyncQueue<number>, AsyncQueue<number>]) {
-    const [inValues, outValues] = _.unzip(testSuite)
+type TestSuite = {  in: { [key: number]: number[] },
+                   out: { [key: number]: number[] } }
 
-    const inA = new Input(inValues, map[0])
-    const outA = new Output(map[1])
+export async function evaluate(testSuite: TestSuite,
+                               units: Array<Unit>,
+                               inputs: RegisterQueue[],
+                               outputs: RegisterQueue[]) {
 
-    units.push(inA, outA)
+    const ins = inputs.map((port, ix) => new Input(testSuite.in[ix], port))
+    const outs = outputs.map((port, ix) => new Output(port))
+
+    units = units.concat(ins).concat(outs)
 
     const simulate = async () => {
-        while (outA.result.length !== testSuite.length) {
+        while (outs.every((out, ix) => out.result.length !== testSuite.out[ix].length)) {
             await Promise.race(units.map(u => u.step()))
         }
 
-        return outA.result
+        return outs.map(out => out.result)
     }
 
-    return _.zip(outValues, await simulate() as number[])
+    return (await simulate()).reduce((acc, out, ix) => ({...acc, [ix]: out }), {})
 }
-
-function fitness(testResults: Array<[number, number]>) {
-    return testResults.filter(o => o[0] === o[1]).length / testResults.length
-}
-
-(async () => {
-    const p1 = `mov up, acc\n add acc\n mov acc, down`
-    const unit = new ComputingUnit('U11', p1)
-    const testSuite = [[1, 2], [2, 4], [3, 6], [4, 9]] as [number, number][]
-    const results = await evaluate(testSuite, [unit], [unit.up, unit.down])
-
-    console.debug(fitness(results))
-})()

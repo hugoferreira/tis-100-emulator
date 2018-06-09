@@ -1,6 +1,8 @@
 import { AsyncQueue } from './lib/AsyncQueue'
 import { Line, Lang, Register, Compile } from './language'
 
+export type RegisterQueue = AsyncQueue<number>
+
 export interface Unit {
     step()
 }
@@ -37,23 +39,27 @@ export class Output implements Unit {
 }
 
 export class ComputingUnit implements Unit {
+    // Code
     private program: Line[]
     private mappings: Array<number>
 
-    ip = 0
-    nextIp = 0
+    // Registers
     acc = 0
     bak = 0
+    left = new AsyncQueue<number>(0)
+    right = new AsyncQueue<number>(0)
+    up = new AsyncQueue<number>(0)
+    down = new AsyncQueue<number>(0)
+
+    // Execution
+    ip = 0
+    nextIp = 0
     status = 'IDLE'
     requestedCycles = 0
     executedCycles = 0
 
     constructor(readonly id: string,
-        private source: string,
-        public left: AsyncQueue<number> = new AsyncQueue<number>(0),
-        public right: AsyncQueue<number> = new AsyncQueue<number>(0),
-        public up: AsyncQueue<number> = new AsyncQueue<number>(0),
-        public down: AsyncQueue<number> = new AsyncQueue<number>(0)) {
+        private source: string) {
 
         try {
             this.source = source.trim().toLowerCase().split('\n').map(l => l.trim()).join('\n')
