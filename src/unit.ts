@@ -2,13 +2,15 @@ import { AsyncQueue } from './lib/AsyncQueue'
 import { Line, Lang, Register, Compile } from './language'
 
 export type RegisterQueue = AsyncQueue<number>
+export type UnitStatus = 'IDLE' | 'READ' | 'WRTE' | 'RUN'
 
 export interface Unit {
-    step()
+    step(): void
+    status: UnitStatus
 }
 
 export class Source implements Unit {
-    status = 'IDLE'
+    status: UnitStatus = 'IDLE'
 
     constructor(private input: Array<number>, private register: AsyncQueue<number>) { }
 
@@ -24,7 +26,7 @@ export class Source implements Unit {
 }
 
 export class Sink implements Unit {
-    status = 'IDLE'
+    status: UnitStatus = 'IDLE'
     result = Array<number>()
 
     constructor(private register: AsyncQueue<number>) { }
@@ -54,7 +56,7 @@ export class ComputingUnit implements Unit {
     // Execution
     ip: number
     nextIp: number
-    status: 'IDLE' | 'READ' | 'WRTE' | 'RUN'
+    status: UnitStatus
     requestedCycles: number
     executedCycles: number
 
