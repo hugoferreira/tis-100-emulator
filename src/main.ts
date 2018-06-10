@@ -39,7 +39,7 @@ import { Compile, SingletonOps } from './language';
     unitsArray[0][2].compile(p3)
     unitsArray[0][3].compile(p4)
 
-    let mutator = new GeneticMutator()
+    let mutator = new GeneticMutator(10)
     let splicer = new GeneticSplicer(mutator)
     let spliced = splicer.splice(unitsArray, unitsArray)
 

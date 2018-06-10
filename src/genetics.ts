@@ -3,19 +3,21 @@ import * as _ from 'lodash'
 import { ComputingUnit } from './unit';
 
 export class GeneticMutator {
+  private mutations
   private mutateProbability
   private changeOpProbability
   private registerProbability
 
-  constructor(mutateProbability = 0.9, changeOpProbability = 0.5, registerProbability = 0.3) {
+  constructor(mutations: number = 1, mutateProbability = 0.9, changeOpProbability = 0.5, registerProbability = 0.3) {
+    this.mutations = mutations
     this.mutateProbability = mutateProbability
     this.changeOpProbability = changeOpProbability
-    this.registerProbability = registerProbability
+    this.registerProbability = registerProbability    
   }
 
-  public mutate(program: Line[], mutations: number = 1): Line[] {
+  public mutate(program: Line[]): Line[] {
     let copy = program != undefined ? _.clone(program) : []
-    for (let m = 0; m < mutations; m++)
+    for (let m = 0; m < this.mutations; m++)
       copy = this.mutateOne(copy)
     return copy.length > 0 ? copy : undefined
   }
