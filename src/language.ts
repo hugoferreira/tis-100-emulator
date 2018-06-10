@@ -1,22 +1,22 @@
 import * as P from 'parsimmon'
 
-type BinaryOp = 'MOV'
-const BinaryOps: BinaryOp[] = ['MOV']
+export type BinaryOp = 'MOV'
+export const BinaryOps: BinaryOp[] = ['MOV']
 
-type UnaryOp = 'ADD' | 'SUB' | 'JRO'
-const UnaryOps: UnaryOp[] = ['ADD', 'SUB', 'JRO']
+export type UnaryOp = 'ADD' | 'SUB' | 'JRO'
+export const UnaryOps: UnaryOp[] = ['ADD', 'SUB', 'JRO']
 
-type Jump = 'JEZ' | 'JNZ' | 'JLZ' | 'JGZ' | 'JMP'
-const Jumps: Jump[] = ['JEZ', 'JNZ', 'JLZ', 'JGZ', 'JMP']
+export type Jump = 'JEZ' | 'JNZ' | 'JLZ' | 'JGZ' | 'JMP'
+export const Jumps: Jump[] = ['JEZ', 'JNZ', 'JLZ', 'JGZ', 'JMP']
 
-type SingletonOp = 'NOP' | 'NEG' | 'SAV' | 'SWP'
-const SingletonOps: SingletonOp[] = ['NOP', 'NEG', 'SAV', 'SWP']
+export type SingletonOp = 'NOP' | 'NEG' | 'SAV' | 'SWP'
+export const SingletonOps: SingletonOp[] = ['NOP', 'NEG', 'SAV', 'SWP']
 
 export type Register = 'LEFT' | 'RIGHT' | 'UP' | 'DOWN' | 'ACC' | 'NIL'
-const Registers: Register[] = ['LEFT', 'RIGHT', 'UP', 'DOWN', 'ACC', 'NIL']
+export const Registers: Register[] = ['LEFT', 'RIGHT', 'UP', 'DOWN', 'ACC', 'NIL']
 
 export type Op = BinaryOp | UnaryOp | SingletonOp | Jump
-const Ops: Op[] = Array.prototype.concat(BinaryOps, UnaryOps, SingletonOps, Jumps)
+export const Ops: Op[] = Array.prototype.concat(BinaryOps, UnaryOps, SingletonOps, Jumps)
 
 export type Line =
     { op: SingletonOp }
@@ -45,6 +45,17 @@ export const Lang = P.createLanguage({
         Program: (r) => P.alt(r.Label, r.Instruction).trim(r._).atLeast(1),
               _: ()  => P.optWhitespace
 })
+
+export function Decompile(program: Line[]) {
+    return program.map(line => {
+        if ('b' in line)
+            return `${line.op} ${line.a}, ${line.b}`
+        if ('a' in line)
+            return `${line.op} ${line.a}`
+        else
+            return `${line.op}`
+    }).join('\n')
+}
 
 export function Compile(source: String): [Line[], number[]] {
     // FIXME: Let the grammar handle the trims and casing
