@@ -1,6 +1,8 @@
 import { AsyncQueue } from './lib/AsyncQueue'
 import { UserInterface } from './consoleui'
 import { ComputingUnit, Source } from './unit'
+import { GeneticMutator } from './genetics'
+import { Compile, SingletonOps } from './language';
 
 (async () => {
     const p1 = `mov 5, acc
@@ -36,6 +38,10 @@ import { ComputingUnit, Source } from './unit'
     unitsArray[0][1].init(p2)
     unitsArray[0][2].init(p3)
     unitsArray[0][3].init(p4)
+
+    let mutator = new GeneticMutator();    
+    console.log(mutator.mutate(unitsArray[0][0].program, 10))
+    unitsArray[0][0].program = mutator.mutate(unitsArray[0][0].program)
 
     new Source([10, 20, 30, 40], unitsArray[0][0].up)
 

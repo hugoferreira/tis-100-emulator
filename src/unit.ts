@@ -42,7 +42,7 @@ export class Sink implements Unit {
 
 export class ComputingUnit implements Unit {
     // Code
-    private program: Line[]
+    public program: Line[]
     private mappings: Array<number>
 
     // Registers
