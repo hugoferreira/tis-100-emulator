@@ -18,10 +18,9 @@ export const Registers: Register[] = ['LEFT', 'RIGHT', 'UP', 'DOWN', 'ACC', 'NIL
 export type Op = BinaryOp | UnaryOp | SingletonOp | Jump
 export const Ops: Op[] = Array.prototype.concat(BinaryOps, UnaryOps, SingletonOps, Jumps)
 
-export const isSingle = (op: Op): op is SingletonOp => SingletonOps.includes(op as SingletonOp)
-export const isUnary = (op: Op): op is UnaryOp => UnaryOps.includes(op as UnaryOp)
-export const isBinary = (op: Op): op is BinaryOp => BinaryOps.includes(op as BinaryOp)
-export const isJump = (op: Op): op is Jump => Jumps.includes(op as Jump)
+export function is<U, T extends U>(op: U, collection: Array<T>): op is T {
+    return collection.includes(op as T)
+}
 
 export type Line =
     { op: SingletonOp }

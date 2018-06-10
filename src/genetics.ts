@@ -1,4 +1,4 @@
-import { Line, Register, Ops, Registers, isUnary, isSingle, isBinary, isJump } from './language'
+import { Line, Register, Ops, Registers, is, SingletonOps, UnaryOps, BinaryOps, Jumps } from './language'
 import * as _ from 'lodash'
 
 export class GeneticMutator {
@@ -33,7 +33,7 @@ export class GeneticMutator {
   }
 
   private mutateLine(program: Line[], line: Line): Line {
-    if (isSingle(line.op) || Math.random() < this.changeOpProbability)
+    if (is(line.op, SingletonOps) || Math.random() < this.changeOpProbability)
       return this.mutateOp(program, line)
     else
       return this.mutateParams(program, line)
@@ -44,17 +44,17 @@ export class GeneticMutator {
   }
 
   private mutateParams(program: Line[], line: Line): Line {
-    if (isUnary(line.op)) return { op: line.op, a: this.generateNumberOrRegister() }
-    if (isBinary(line.op)) return { op: line.op, a: this.generateNumberOrRegister(), b: this.generateRegister() }
-    if (isJump(line.op)) return { op: line.op, a: this.generateAddress(program) }
+    if (is(line.op, UnaryOps)) return { op: line.op, a: this.generateNumberOrRegister() }
+    if (is(line.op, BinaryOps)) return { op: line.op, a: this.generateNumberOrRegister(), b: this.generateRegister() }
+    if (is(line.op, Jumps)) return { op: line.op, a: this.generateAddress(program) }
   }
 
   private generateLine(program: Line[]): Line {
     let op = _.sample(Ops)
-    if (isSingle(op)) return { op }
-    if (isUnary(op)) return { op, a: this.generateNumberOrRegister() }
-    if (isUnary(op)) return { op, a: this.generateNumberOrRegister(), b: this.generateRegister() }
-    if (isJump(op)) return { op, a: this.generateAddress(program) }
+    if (is(op, SingletonOps)) return { op }
+    if (is(op, UnaryOps)) return { op, a: this.generateNumberOrRegister() }
+    if (is(op, BinaryOps)) return { op, a: this.generateNumberOrRegister(), b: this.generateRegister() }
+    if (is(op, Jumps)) return { op, a: this.generateAddress(program) }
   }
 
   private generateNumberOrRegister(): number | Register {
