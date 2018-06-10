@@ -1,7 +1,5 @@
-import { Line, Register, Ops, SingletonOps, BinaryOps, UnaryOps, Jumps, Registers, SingletonOp, UnaryOp, BinaryOp, Jump } from './language'
-import { setInterval } from 'timers';
+import { Line, Register, Ops, Registers, isUnary, isSingle, isBinary, isJump } from './language'
 import * as _ from 'lodash'
-import { line, program } from 'blessed';
 
 export class GeneticMutator {
   private mutateProbability
@@ -35,7 +33,7 @@ export class GeneticMutator {
   }
 
   private mutateLine(program: Line[], line: Line): Line {
-    if (line.op in SingletonOps || Math.random() < this.changeOpProbability)
+    if (isSingle(line.op) || Math.random() < this.changeOpProbability)
       return this.mutateOp(program, line)
     else
       return this.mutateParams(program, line)
@@ -46,43 +44,17 @@ export class GeneticMutator {
   }
 
   private mutateParams(program: Line[], line: Line): Line {
-    switch (line.op) {
-      case 'ADD':
-      case 'SUB':
-        return { type: 'Unr', op: line.op as UnaryOp, a: this.generateNumberOrRegister() }
-      case 'MOV':
-        return { type: 'Bin', op: line.op as BinaryOp, a: this.generateNumberOrRegister(), b: this.generateRegister() }
-      case 'JRO':
-      case 'JEZ':
-      case 'JNZ':
-      case 'JLZ':
-      case 'JGZ':
-      case 'JMP':      
-        return { type: 'Jmp', op: line.op as Jump, a: this.generateAddress(program) }
-    }
+    if (isUnary(line.op)) return { op: line.op, a: this.generateNumberOrRegister() }
+    if (isBinary(line.op)) return { op: line.op, a: this.generateNumberOrRegister(), b: this.generateRegister() }
+    if (isJump(line.op)) return { op: line.op, a: this.generateAddress(program) }
   }
 
   private generateLine(program: Line[]): Line {
-    let op = Ops[Math.floor(Math.random() * Ops.length)]
-    switch (op) {
-      case 'NOP':
-      case 'NEG':
-      case 'SAV':
-      case 'SWP':
-        return { type: 'Sng', op: op as SingletonOp }
-      case 'ADD':
-      case 'SUB':
-        return { type: 'Unr', op: op as UnaryOp, a: this.generateNumberOrRegister() }
-      case 'MOV':
-        return { type: 'Bin', op: op as BinaryOp, a: this.generateNumberOrRegister(), b: this.generateRegister() }
-      case 'JRO':
-      case 'JEZ':
-      case 'JNZ':
-      case 'JLZ':
-      case 'JGZ':
-      case 'JMP':      
-        return { type: 'Jmp', op: op as Jump, a: this.generateAddress(program) }
-    }
+    let op = _.sample(Ops)
+    if (isSingle(op)) return { op }
+    if (isUnary(op)) return { op, a: this.generateNumberOrRegister() }
+    if (isUnary(op)) return { op, a: this.generateNumberOrRegister(), b: this.generateRegister() }
+    if (isJump(op)) return { op, a: this.generateAddress(program) }
   }
 
   private generateNumberOrRegister(): number | Register {
@@ -90,19 +62,19 @@ export class GeneticMutator {
       return this.generateRegister()
     else
       return this.generateNumber()
-  } 
+  }
 
   private generateRegister(): Register {
-    return Registers[Math.floor(Math.random() * Registers.length)]
-  } 
+    return _.sample(Registers)
+  }
 
   private generateNumber(): number {
     return Math.floor(Math.random() * 20 - 10)
-  } 
+  }
 
   private generateAddress(program: Line[]): number {
     return Math.floor(Math.random() * program.length)
-  } 
+  }
 
   private addRemoveLine(program: Line[]): Line[] {
     if (program.length > 0 && Math.random() < 0.5 || program.length == 15)

@@ -18,11 +18,16 @@ export const Registers: Register[] = ['LEFT', 'RIGHT', 'UP', 'DOWN', 'ACC', 'NIL
 export type Op = BinaryOp | UnaryOp | SingletonOp | Jump
 export const Ops: Op[] = Array.prototype.concat(BinaryOps, UnaryOps, SingletonOps, Jumps)
 
-export type Line = 
-    { type: 'Sng', op: SingletonOp } 
-  | { type: 'Unr', op: UnaryOp, a: number | Register } 
-  | { type: 'Bin', op: BinaryOp, a: number | Register, b: Register } 
-  | { type: 'Jmp', op: Jump, a: number }
+export const isSingle = (op: Op): op is SingletonOp => SingletonOps.includes(op as SingletonOp)
+export const isUnary = (op: Op): op is UnaryOp => UnaryOps.includes(op as UnaryOp)
+export const isBinary = (op: Op): op is BinaryOp => BinaryOps.includes(op as BinaryOp)
+export const isJump = (op: Op): op is Jump => Jumps.includes(op as Jump)
+
+export type Line =
+    { op: SingletonOp }
+  | { op: UnaryOp, a: number | Register }
+  | { op: BinaryOp, a: number | Register, b: Register }
+  | { op: Jump, a: number }
 
 const keywords = <T extends string>(ss: T[]) => P.alt(...ss.map(P.string)).trim(P.optWhitespace) as P.Parser<T>
 
@@ -34,13 +39,13 @@ export const Lang = P.createLanguage({
         LabelId: ()  => P.regexp(/[A-Z]+[A-Z0-9]*/),
           Label: (r) => r.LabelId.skip(P.string(':')).map(m => ({ label: m })),
       LabelJump: (r) => P.seq(keywords(Jumps), r.LabelId)
-                         .map(p => ({ type: 'Jmp', op: p[0], ref: p[1] })),
+                         .map(p => ({ op: p[0], ref: p[1] })),
           BinOp: (r) => P.seq(keywords(BinaryOps), r.Operand, r.Separator, r.Operand)
-                         .map(p => ({ type: 'Bin', op: p[0], a: p[1], b: p[3] })),
+                         .map(p => ({ op: p[0], a: p[1], b: p[3] })),
            UnOp: (r) => P.seq(keywords(UnaryOps), r.Operand)
-                         .map(p => ({ type: 'Unr', op: p[0], a: p[1] })),
+                         .map(p => ({ op: p[0], a: p[1] })),
              Op: ()  => P.alt(keywords(SingletonOps))
-                         .map(p => ({ type: 'Sng', op: p })),
+                         .map(p => ({ op: p })),
     Instruction: (r) => P.alt(r.BinOp, r.UnOp, r.Op, r.LabelJump),
         Program: (r) => P.alt(r.Label, r.Instruction).trim(r._).atLeast(1),
               _: ()  => P.optWhitespace
