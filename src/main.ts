@@ -1,7 +1,7 @@
 import { AsyncQueue } from './lib/AsyncQueue'
 import { UserInterface } from './consoleui'
 import { ComputingUnit, Source } from './unit'
-import { GeneticMutator } from './genetics'
+import { GeneticMutator, GeneticSplicer } from './genetics'
 import { Compile, SingletonOps } from './language';
 
 (async () => {
@@ -39,12 +39,12 @@ import { Compile, SingletonOps } from './language';
     unitsArray[0][2].compile(p3)
     unitsArray[0][3].compile(p4)
 
-    let mutator = new GeneticMutator();
-    console.log(mutator.mutate(unitsArray[0][0].program, 10))
-    unitsArray[0][0].program = mutator.mutate(unitsArray[0][0].program)
+    let mutator = new GeneticMutator()
+    let splicer = new GeneticSplicer(mutator)
+    console.log(splicer.splice(unitsArray, unitsArray))
 
     new Source([10, 20, 30, 40], unitsArray[0][0].up)
 
-    const gui = new UserInterface(unitsArray)
-    gui.run()
+//    const gui = new UserInterface(unitsArray)
+//    gui.run()
 })()

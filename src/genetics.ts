@@ -1,5 +1,6 @@
 import { Line, Register, Ops, Registers, is, SingletonOps, UnaryOps, BinaryOps, Jumps } from './language'
 import * as _ from 'lodash'
+import { ComputingUnit } from './unit';
 
 export class GeneticMutator {
   private mutateProbability
@@ -13,10 +14,10 @@ export class GeneticMutator {
   }
 
   public mutate(program: Line[], mutations: number = 1): Line[] {
-    let copy = _.clone(program)
+    let copy = program != undefined ? _.clone(program) : []
     for (let m = 0; m < mutations; m++)
       copy = this.mutateOne(copy)
-    return copy
+    return copy.length > 0 ? copy : undefined
   }
 
   private mutateOne(program: Line[]): Line[] {
@@ -83,4 +84,25 @@ export class GeneticMutator {
       program.splice(Math.floor(Math.random() * program.length), 0, this.generateLine(program))
     return program
   }
+}
+
+export class GeneticSplicer {
+  mutator: GeneticMutator;
+
+  constructor(mutator: GeneticMutator) {
+    this.mutator = mutator;    
+  }
+
+  public splice(individual1: ComputingUnit[][], individual2: ComputingUnit[][]) {
+    let copy = _.clone(individual1)
+    for (let r = 0; r < individual1.length; r++) {
+      for (let c = 0; c < individual1[r].length; c++) {
+        if (Math.random() < 0.5)
+          copy[r][c].program = this.mutator.mutate(individual1[r][c].program)
+        else
+          copy[r][c].program = this.mutator.mutate(individual2[r][c].program)
+      }
+    }
+    return copy
+  }  
 }
