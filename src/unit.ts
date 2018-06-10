@@ -45,13 +45,15 @@ export class ComputingUnit implements Unit {
     private program: Line[]
     private mappings: Array<number>
 
+    // IO
+    left  = new AsyncQueue<number>(0)
+    right = new AsyncQueue<number>(0)
+    up    = new AsyncQueue<number>(0)
+    down  = new AsyncQueue<number>(0)
+
     // Registers
     acc: number
     bak: number
-    left = new AsyncQueue<number>(0)
-    right = new AsyncQueue<number>(0)
-    up = new AsyncQueue<number>(0)
-    down = new AsyncQueue<number>(0)
 
     // Execution
     ip: number
@@ -61,10 +63,11 @@ export class ComputingUnit implements Unit {
     executedCycles: number
 
     constructor(private source?: string) {
-       if (source != '') this.init(source)
+       if (source != '') this.compile(source)
+       this.reset()
     }
 
-    init(source: string) {
+    compile(source: string) {
         try {
             this.source = source.trim().toLowerCase().split('\n').map(l => l.trim()).join('\n')
             const compiled = Compile(source)
@@ -73,7 +76,9 @@ export class ComputingUnit implements Unit {
         } catch {
             this.program = undefined
         }
+    }
 
+    reset() {
         this.ip = 0
         this.nextIp = 0
         this.status = 'IDLE'
@@ -92,7 +97,8 @@ export class ComputingUnit implements Unit {
             case 'RIGHT': return await this.right.dequeue()
             case 'UP': return await this.up.dequeue()
             case 'DOWN': return await this.down.dequeue()
-            default: return <number>r
+            case 'NIL': return 0
+            default: return r as number
         }
     }
 
