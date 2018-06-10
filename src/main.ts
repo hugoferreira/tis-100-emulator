@@ -34,12 +34,12 @@ import { Compile, SingletonOps } from './language';
             unitsArray[r][c].down  = unitsArray[r + 1][c].up
     }))
 
-    unitsArray[0][0].init(p1)
-    unitsArray[0][1].init(p2)
-    unitsArray[0][2].init(p3)
-    unitsArray[0][3].init(p4)
+    unitsArray[0][0].compile(p1)
+    unitsArray[0][1].compile(p2)
+    unitsArray[0][2].compile(p3)
+    unitsArray[0][3].compile(p4)
 
-    let mutator = new GeneticMutator();    
+    let mutator = new GeneticMutator();
     console.log(mutator.mutate(unitsArray[0][0].program, 10))
     unitsArray[0][0].program = mutator.mutate(unitsArray[0][0].program)
 
