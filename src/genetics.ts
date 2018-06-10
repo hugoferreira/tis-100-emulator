@@ -1,4 +1,4 @@
-import { Line, Register, Ops, Registers, is, SingletonOps, UnaryOps, BinaryOps, Jumps } from './language'
+import { Line, Register, Ops, Registers, is, SingletonOps, UnaryOps, BinaryOps, Jumps, Decompile } from './language'
 import * as _ from 'lodash'
 import { ComputingUnit } from './unit';
 
@@ -97,10 +97,8 @@ export class GeneticSplicer {
     let copy = _.clone(individual1)
     for (let r = 0; r < individual1.length; r++) {
       for (let c = 0; c < individual1[r].length; c++) {
-        if (Math.random() < 0.5)
-          copy[r][c].program = this.mutator.mutate(individual1[r][c].program)
-        else
-          copy[r][c].program = this.mutator.mutate(individual2[r][c].program)
+        let program = Math.random() < 0.5 ? this.mutator.mutate(individual1[r][c].program) : this.mutator.mutate(individual2[r][c].program)
+        copy[r][c].compile(Decompile(program))
       }
     }
     return copy

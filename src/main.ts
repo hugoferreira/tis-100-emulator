@@ -41,10 +41,10 @@ import { Compile, SingletonOps } from './language';
 
     let mutator = new GeneticMutator()
     let splicer = new GeneticSplicer(mutator)
-    console.log(splicer.splice(unitsArray, unitsArray))
+    let spliced = splicer.splice(unitsArray, unitsArray)
 
-    new Source([10, 20, 30, 40], unitsArray[0][0].up)
+    new Source([10, 20, 30, 40], spliced[0][0].up)
 
-//    const gui = new UserInterface(unitsArray)
-//    gui.run()
+    const gui = new UserInterface(spliced)
+    gui.run()
 })()
