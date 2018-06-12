@@ -100,7 +100,7 @@ export class GeneticSplicer {
     for (let r = 0; r < individual1.length; r++) {
       for (let c = 0; c < individual1[r].length; c++) {
         let program = Math.random() < 0.5 ? this.mutator.mutate(individual1[r][c].program) : this.mutator.mutate(individual2[r][c].program)
-        copy[r][c].compile(Decompile(program))
+        copy[r][c].compile(program != undefined ? Decompile(program) : "")
       }
     }
     return copy
