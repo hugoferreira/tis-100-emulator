@@ -95,14 +95,9 @@ export class GeneticSplicer {
     this.mutator = mutator;    
   }
 
-  public splice(individual1: ComputingUnit[][], individual2: ComputingUnit[][]) {
+  public splice(individual1: Line[], individual2: Line[]): Line[] {
     let copy = _.clone(individual1)
-    for (let r = 0; r < individual1.length; r++) {
-      for (let c = 0; c < individual1[r].length; c++) {
-        let program = Math.random() < 0.5 ? this.mutator.mutate(individual1[r][c].program) : this.mutator.mutate(individual2[r][c].program)
-        copy[r][c].compile(program != undefined ? Decompile(program) : "")
-      }
-    }
+    let program = Math.random() < 0.5 ? this.mutator.mutate(individual1) : this.mutator.mutate(individual2)
     return copy
   }  
 }
