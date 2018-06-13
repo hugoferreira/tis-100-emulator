@@ -1,22 +1,25 @@
-import { Line, Register, Ops, Registers, is, SingletonOps, UnaryOps, BinaryOps, Jumps } from './language'
+import { Line, Register, Ops, Registers, is, SingletonOps, UnaryOps, BinaryOps, Jumps, Decompile } from './language'
 import * as _ from 'lodash'
+import { ComputingUnit } from './unit';
 
 export class GeneticMutator {
+  private mutations
   private mutateProbability
   private changeOpProbability
   private registerProbability
 
-  constructor(mutateProbability = 0.9, changeOpProbability = 0.5, registerProbability = 0.3) {
+  constructor(mutations: number = 1, mutateProbability = 0.9, changeOpProbability = 0.5, registerProbability = 0.3) {
+    this.mutations = mutations
     this.mutateProbability = mutateProbability
     this.changeOpProbability = changeOpProbability
-    this.registerProbability = registerProbability
+    this.registerProbability = registerProbability    
   }
 
-  public mutate(program: Line[], mutations: number = 1): Line[] {
-    let copy = _.clone(program)
-    for (let m = 0; m < mutations; m++)
+  public mutate(program: Line[]): Line[] {
+    let copy = program != undefined ? _.clone(program) : []
+    for (let m = 0; m < this.mutations; m++)
       copy = this.mutateOne(copy)
-    return copy
+    return copy.length > 0 ? copy : undefined
   }
 
   private mutateOne(program: Line[]): Line[] {
@@ -83,4 +86,23 @@ export class GeneticMutator {
       program.splice(Math.floor(Math.random() * program.length), 0, this.generateLine(program))
     return program
   }
+}
+
+export class GeneticSplicer {
+  mutator: GeneticMutator;
+
+  constructor(mutator: GeneticMutator) {
+    this.mutator = mutator;    
+  }
+
+  public splice(individual1: ComputingUnit[][], individual2: ComputingUnit[][]) {
+    let copy = _.clone(individual1)
+    for (let r = 0; r < individual1.length; r++) {
+      for (let c = 0; c < individual1[r].length; c++) {
+        let program = Math.random() < 0.5 ? this.mutator.mutate(individual1[r][c].program) : this.mutator.mutate(individual2[r][c].program)
+        copy[r][c].compile(program != undefined ? Decompile(program) : "")
+      }
+    }
+    return copy
+  }  
 }

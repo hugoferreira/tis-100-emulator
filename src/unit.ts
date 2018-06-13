@@ -62,10 +62,11 @@ export class ComputingUnit implements Unit {
     requestedCycles: number
     executedCycles: number
 
-    constructor(private source?: string) {
+    constructor(public source?: string) {
        if (source != '') this.compile(source)
        this.reset()
     }
+
 
     compile(source: string) {
         try {
