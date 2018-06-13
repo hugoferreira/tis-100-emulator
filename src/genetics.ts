@@ -51,7 +51,7 @@ export class GeneticMutator {
   private randomOp() {
     const ops = _.sortBy([{op: 'MOV', v: 10}, {op: 'ADD', v: 2}, {op: 'SUB', v: 3}, {op: 'JRO', v: 4}, {op: 'JEZ', v: 5}, {op: 'JNZ', v: 6}, {op: 'JLZ', v: 7}, {op: 'JGZ', v: 8}, {op: 'JMP', v: 9}, {op: 'NOP', v: 10}, {op: 'NEG', v: 11}, {op: 'SAV', v: 12}, {op: 'SWP', v: 13}], (o) => o.v)
     _.map(ops, (num, i) => ops[i].v += (i > 0 ? ops[i - 1].v : 0))
-    return _.findLast(ops, (e) => e.v < _.random(0, _.last(ops).v - 1, false)).op
+    return _.find(ops, (e) => e.v > _.random(0, _.last(ops).v - 1, false)).op
   }
 
   private generateLine(program: Line[]): Line {
