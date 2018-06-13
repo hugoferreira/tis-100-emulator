@@ -47,23 +47,21 @@ class GeneticSearcher {
         }))
     }
 
-    elitePopulation(population: Array<{ specimen: Genome, score: number }>, topN: number = 10) {
-        return _.takeRight(_.sortBy(population, p => p.score), topN)
+    elitePopulation(sortedPop: Array<{ specimen: Genome, score: number }>, topN: number = 10) {
+        return _.takeRight(sortedPop, topN)
     }
 
-    crossoverPopulation(population: Array<{ specimen: Genome, score: number }>, killN: number = 10, topN: number = 10) {
-        const pool = _.drop(_.sortBy(population, p => p.score), killN)
-        const popSize = population.length - topN
-        const newPool = _.range(0, popSize).map(n => {
-            const [a, b] = _.sampleSize(pool, 2)
-            return this.splicer.splice(a.specimen, b.specimen) || []
-        })
+    crossoverPopulation(sortedPop: Array<{ specimen: Genome, score: number }>, killN: number = 10, topN: number = 10) {
+        const pool = _.drop(sortedPop, killN)
 
-        return newPool
+        return _.range(0, sortedPop.length - topN).map(n => {
+            const [a, b] = _.sampleSize(pool, 2)
+            return this.splicer.splice(a.specimen, b.specimen)
+        })
     }
 
     async newPool(pop: Array<Genome>, test: TestSuite) {
-        const evaluatedPool = await this.evaluatePopulation(pop, test)
+        const evaluatedPool = _.sortBy(await this.evaluatePopulation(pop, test), p => p.score)
         const elite = _.map(this.elitePopulation(evaluatedPool), 'specimen')
         const newPool = this.crossoverPopulation(evaluatedPool, 10, 10)
 
