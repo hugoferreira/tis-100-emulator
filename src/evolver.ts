@@ -17,20 +17,20 @@ class GeneticSearcher {
     fitness(specimen: Genome,
               result: { [key: number]: number[] },
             expected: { [key: number]: number[] }) {
-        const alpha = 100
+        const alpha = 10
         const beta = 20
         const gamma = 10
 
         const outUnits = Object.keys(expected)
         const match = outUnits.map(out =>
-            _.zip(expected[out], result[out]).filter(p => p[0] === p[1]).length / expected[out].length
-        ).reduce((acc, e) => acc + e, 0) / outUnits.length
+            _.zip(expected[out], result[out]).filter(p => p[0] === p[1]).length
+        ).reduce((acc, e) => acc + e, 0)
 
         const lenghts = outUnits.map(out => -Math.abs(expected[out].length - result[out].length))
                                 .reduce((acc, e) => acc + e, 0)
 
         const programSize = 1 / specimen.length
-        return alpha * match + beta * lenghts + ((specimen.length > 0) ? gamma * programSize : 0)
+        return match + beta * lenghts + ((specimen.length > 0) ? gamma * programSize : 0)
     }
 
     seedPopulation(seed: Genome) {
@@ -41,8 +41,8 @@ class GeneticSearcher {
         return Promise.all(population.map(async specimen => {
             const unit = new ComputingUnit()
             unit.compile(specimen.length > 0 ? Decompile(specimen) : "")
-            const result = await evaluate(test, [unit], [unit.up], [unit.down])
-            const score = this.fitness(specimen, result, test.out)
+            const result = evaluate(test, [unit], [unit.up], [unit.down])
+            const score = (specimen.length > 0) ? this.fitness(specimen, await result, test.out) : -Infinity
             return { specimen, score }
         }))
     }
@@ -75,32 +75,29 @@ class GeneticSearcher {
     let unit = new ComputingUnit()
     unit.compile(p1)
 
-    // while (true) {
-        const test = {
-             in: { 0: [1, 2, 3, 4] },
-            out: { 0: [2, 4, 6, 8] }
+    const test = {
+         in: { 0: [1, 2, 3, 4] },
+        out: { 0: [2, 4, 6, 8] }
+    }
+
+    const g = new GeneticSearcher()
+    const pop = g.seedPopulation(unit.program)
+
+    let newPool = pop
+    let bestSpecimen = { score: -Infinity, specimen: unit.program }
+    let generation = 0
+
+    // console.log(g.fitness(Compile(`mov 4, down`)[0], { 0: [4] }, { 0: [2, 4, 6, 8] }))
+
+    while(true) {
+        console.debug(`Epoch ${generation++}`)
+        newPool = await g.newPool(newPool, test);
+        const scores = _.sortBy((await g.evaluatePopulation(newPool, test)), p => p.score)
+        const localBest = _.last(scores)
+
+        if (localBest.score > bestSpecimen.score) {
+            bestSpecimen = localBest
+            console.log(`[${localBest.score}] ${Decompile(localBest.specimen)}`)
         }
-
-        const g = new GeneticSearcher()
-        const pop = g.seedPopulation(unit.program)
-        let newPool = pop
-        let bestSpecimen = { score: -Infinity, specimen: unit.program }
-        let generation = 0
-
-        while(true) {
-            console.debug(`Generation ${generation++}`)
-            newPool = await g.newPool(newPool, test);
-            const scores = _.sortBy((await g.evaluatePopulation(newPool, test)), p => p.score)
-            const localBest = _.last(scores)
-
-            if (localBest.score > bestSpecimen.score) {
-                bestSpecimen = localBest
-                console.log(`[${localBest.score}] ${Decompile(localBest.specimen)}`)
-            }
-        }
-
-        /* let program = mutator.mutate(unit.program)
-        unit.compile(program != undefined ? Decompile(program) : "")
-        console.log(unit.source) */
-    //
+    }
 })()

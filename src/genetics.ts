@@ -7,20 +7,22 @@ export class GeneticMutator {
               readonly mutateProbability = 0.9,
               readonly changeOpProbability = 0.5,
               readonly registerProbability = 0.3,
+              readonly alterlinesProbability = 0.1,
               readonly maxProgramSize = 10) { }
 
   public mutate(program: Line[]): Line[] {
     let copy = program != undefined ? _.clone(program) : []
     for (let m = 0; m < this.mutations; m++)
       copy = this.mutateOne(copy)
-    return copy.length > 0 ? copy : undefined
+    return copy
   }
 
   private mutateOne(program: Line[]): Line[] {
     if (program.length > 0 && Math.random() < this.mutateProbability)
       return this.mutateExisting(program)
-    else
+    else if (Math.random() < this.alterlinesProbability) {
       return this.addRemoveLine(program)
+    }
   }
 
   private mutateExisting(program: Line[]): Line[] {
@@ -74,23 +76,19 @@ export class GeneticMutator {
   }
 
   private addRemoveLine(program: Line[]): Line[] {
-    if (program.length > 0 && Math.random() < 0.5 || program.length == 15)
-      program.splice(Math.floor(Math.random() * program.length), 1)
-    else if (program.length < this.maxProgramSize)
-      program.splice(Math.floor(Math.random() * program.length), 0, this.generateLine(program))
-    return program
-  }
+      if (Math.random() < 0.5 && program.length > 0)
+        program.splice(Math.floor(Math.random() * program.length), 1)
+      else if (program === undefined || program.length < this.maxProgramSize)
+        program.splice(Math.floor(Math.random() * program.length), 0, this.generateLine(program))
+      return program
+    }
 }
 
 export class GeneticSplicer {
-  mutator: GeneticMutator;
-
-  constructor(mutator: GeneticMutator) {
-    this.mutator = mutator;
-  }
+  constructor(readonly mutator: GeneticMutator, readonly spliceBias = 0.2) {  }
 
   public splice(parent1: Line[], parent2: Line[]): Line[] {
-    const child = _.zip(parent1, parent2).map((p) => Math.random() < .5 ? p[0] || p[1] : p[1] || p[0])
+    const child = _.zip(parent1, parent2).map(p => Math.random() < this.spliceBias ? p[0] || p[1] : p[1] || p[0])
     return this.mutator.mutate(child.filter(l => l != undefined)) || []
   }
 }

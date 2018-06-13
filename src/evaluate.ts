@@ -10,7 +10,7 @@ export async function evaluate(testSuite: TestSuite,
                                units: Array<Unit>,
                                inputs: RegisterQueue[],
                                outputs: RegisterQueue[],
-                               maximumSteps = 10): Promise<{ [key: number]: number[] }>  {
+                               maximumSteps = 100): Promise<{ [key: number]: number[] }>  {
 
     const ins = inputs.map((port, ix) => new Source(_.clone(testSuite.in[ix]), port))
     const outs = outputs.map((port, ix) => new Sink(port))
