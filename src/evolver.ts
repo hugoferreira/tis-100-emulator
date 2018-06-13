@@ -42,7 +42,7 @@ class GeneticSearcher {
             const unit = new ComputingUnit()
             unit.compile(specimen.length > 0 ? Decompile(specimen) : "")
             const result = evaluate(test, [unit], [unit.up], [unit.down])
-            const score = (specimen.length > 0) ? this.fitness(specimen, await result, test.out) : -Infinity
+            const score = (specimen.length > 0) ? this.fitness(specimen, await result, test.out) : 0
             return { specimen, score }
         }))
     }
@@ -96,12 +96,13 @@ class GeneticSearcher {
 
     // console.log(g.fitness(Compile(`mov 4, down`)[0], { 0: [4] }, { 0: [2, 4, 6, 8] }))
 
-    while(true) {
-        console.debug(`Epoch ${generation++}`)
+    while(generation++ < 10000) {
         newPool = await g.newPool(newPool, test);
         const scores = _.sortBy((await g.evaluatePopulation(newPool, test)), p => p.score)
-        const localBest = _.last(scores)
 
+        console.debug(`Epoch ${generation} Best: ${bestSpecimen.score} Pool Average: ${_.sumBy(scores, p => p.score) / scores.length}`)
+
+        const localBest = _.last(scores)
         if (localBest.score > bestSpecimen.score) {
             bestSpecimen = localBest
             console.log(`[${localBest.score}] ${Decompile(localBest.specimen)}`)
