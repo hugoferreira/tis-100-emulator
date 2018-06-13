@@ -119,25 +119,30 @@ export class ComputingUnit implements Unit {
         this.requestedCycles += 1
         let jmpIp = undefined
 
-        if (this.program !== undefined && (this.status == 'RUN' || this.status == 'IDLE')) {
+        if (this.program !== undefined && this.program.length > 0 && (this.status == 'RUN' || this.status == 'IDLE')) {
             this.ip = this.nextIp
-            const exp = this.program[this.ip]
 
-            switch (exp.op) {
-                case 'MOV': await this.write(exp.b, await this.read(exp.a)); break
-                case 'ADD': this.acc += await this.read(exp.a); break
-                case 'SUB': this.acc -= await this.read(exp.a); break
+            try {
+                const exp = this.program[this.ip]
 
-                case 'JMP': jmpIp = exp.a; break
-                case 'JEZ': if (this.acc == 0) jmpIp = exp.a; break
-                case 'JNZ': if (this.acc != 0) jmpIp = exp.a; break
-                case 'JGZ': if (this.acc > 0) jmpIp = exp.a; break
-                case 'JLZ': if (this.acc < 0) jmpIp = exp.a; break
-                case 'JRO': jmpIp = this.ip + await this.read(exp.a); break
+                switch (exp.op) {
+                    case 'MOV': await this.write(exp.b, await this.read(exp.a)); break
+                    case 'ADD': this.acc += await this.read(exp.a); break
+                    case 'SUB': this.acc -= await this.read(exp.a); break
 
-                case 'NEG': this.acc = -this.acc; break
-                case 'SAV': this.bak = this.acc; break
-                case 'SWP': const tmp = this.bak; this.bak = this.acc, this.acc = tmp; break
+                    case 'JMP': jmpIp = exp.a; break
+                    case 'JEZ': if (this.acc == 0) jmpIp = exp.a; break
+                    case 'JNZ': if (this.acc != 0) jmpIp = exp.a; break
+                    case 'JGZ': if (this.acc > 0) jmpIp = exp.a; break
+                    case 'JLZ': if (this.acc < 0) jmpIp = exp.a; break
+                    case 'JRO': jmpIp = Math.max(this.ip + await this.read(exp.a), 0); break
+
+                    case 'NEG': this.acc = -this.acc; break
+                    case 'SAV': this.bak = this.acc; break
+                    case 'SWP': const tmp = this.bak; this.bak = this.acc, this.acc = tmp; break
+                }
+            } catch {
+                console.log(`IP: ${this.ip} Program: ${this.source}`)
             }
 
             this.nextIp = (jmpIp || (this.ip + 1)) % this.program.length

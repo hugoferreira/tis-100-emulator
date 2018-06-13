@@ -12,7 +12,7 @@ export class GeneticMutator {
     this.mutations = mutations
     this.mutateProbability = mutateProbability
     this.changeOpProbability = changeOpProbability
-    this.registerProbability = registerProbability    
+    this.registerProbability = registerProbability
   }
 
   public mutate(program: Line[]): Line[] {
@@ -92,11 +92,11 @@ export class GeneticSplicer {
   mutator: GeneticMutator;
 
   constructor(mutator: GeneticMutator) {
-    this.mutator = mutator;    
+    this.mutator = mutator;
   }
 
   public splice(parent1: Line[], parent2: Line[]): Line[] {
     const child = _.zip(parent1, parent2).map((p) => Math.random() < .5 ? p[0] || p[1] : p[1] || p[0])
-    return this.mutator.mutate(child)
-  }  
+    return this.mutator.mutate(child.filter(l => l != undefined)) || []
+  }
 }
