@@ -95,9 +95,8 @@ export class GeneticSplicer {
     this.mutator = mutator;    
   }
 
-  public splice(individual1: Line[], individual2: Line[]): Line[] {
-    let copy = _.clone(individual1)
-    let program = Math.random() < 0.5 ? this.mutator.mutate(individual1) : this.mutator.mutate(individual2)
-    return copy
+  public splice(parent1: Line[], parent2: Line[]): Line[] {
+    const child = _.zip(parent1, parent2).map((p) => Math.random() < .5 ? p[0] || p[1] : p[1] || p[0])
+    return this.mutator.mutate(child)
   }  
 }
