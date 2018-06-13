@@ -59,7 +59,7 @@ class GeneticSearcher {
 
     crossoverPopulation(sortedPop: Array<{ specimen: Genome, score: number }>, killN: number = 10, topN: number = 10) {
         const pool = _.drop(sortedPop, killN)
-        _.map(pool, (num, i) => pool[i].score += (i > 0 ? pool[i - 1].score : Math.abs(_.head(pool).score)));
+        _.map(pool, (num, i) => pool[i].score += (i > 0 ? pool[i - 1].score : Math.abs(_.head(pool).score)))
 
         return _.range(0, sortedPop.length - topN).map(n => {
             const [a, b] = this.selectMates(pool)
