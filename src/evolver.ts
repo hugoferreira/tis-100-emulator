@@ -14,10 +14,12 @@ class GeneticSearcher {
 
     constructor(public populationSize: number = 50) { }
 
-    fitness(  result: { [key: number]: number[] },
+    fitness(specimen: Genome,
+              result: { [key: number]: number[] },
             expected: { [key: number]: number[] }) {
-        const alpha = 0.75
-        const beta = 100
+        const alpha = 100
+        const beta = 20
+        const gamma = 10
 
         const outUnits = Object.keys(expected)
         const match = outUnits.map(out =>
@@ -27,7 +29,8 @@ class GeneticSearcher {
         const lenghts = outUnits.map(out => -Math.abs(expected[out].length - result[out].length))
                                 .reduce((acc, e) => acc + e, 0)
 
-        return alpha * match + beta * lenghts
+        const programSize = 1 / specimen.length
+        return alpha * match + beta * lenghts + ((specimen.length > 0) ? gamma * programSize : 0)
     }
 
     seedPopulation(seed: Genome) {
@@ -39,7 +42,7 @@ class GeneticSearcher {
             const unit = new ComputingUnit()
             unit.compile(specimen.length > 0 ? Decompile(specimen) : "")
             const result = await evaluate(test, [unit], [unit.up], [unit.down])
-            const score = this.fitness(result, test.out)
+            const score = this.fitness(specimen, result, test.out)
             return { specimen, score }
         }))
     }
@@ -50,7 +53,7 @@ class GeneticSearcher {
 
     crossoverPopulation(population: Array<{ specimen: Genome, score: number }>, killN: number = 10, topN: number = 10) {
         const pool = _.drop(_.sortBy(population, p => p.score), killN)
-        const popSize = (pool.length + killN) - topN
+        const popSize = population.length - topN
         const newPool = _.range(0, popSize).map(n => {
             const [a, b] = _.sampleSize(pool, 2)
             return this.splicer.splice(a.specimen, b.specimen) || []
