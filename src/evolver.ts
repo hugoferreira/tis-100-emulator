@@ -22,15 +22,14 @@ class GeneticSearcher {
         const gamma = 10
 
         const outUnits = Object.keys(expected)
-        const match = outUnits.map(out =>
+        const match = _.sum(outUnits.map(out =>
             _.zip(expected[out], result[out]).filter(p => p[0] === p[1]).length
-        ).reduce((acc, e) => acc + e, 0)
+        ))
 
-        const lenghts = outUnits.map(out => -Math.abs(expected[out].length - result[out].length))
-                                .reduce((acc, e) => acc + e, 0)
+        const lenghts = _.sum(outUnits.map(out => -Math.abs(expected[out].length - result[out].length)))
 
         const programSize = 1 / specimen.length
-        return match + beta * lenghts + ((specimen.length > 0) ? gamma * programSize : 0)
+        return alpha * match + beta * lenghts + ((specimen.length > 0) ? gamma * programSize : 0)
     }
 
     seedPopulation(seed: Genome) {
@@ -70,14 +69,14 @@ class GeneticSearcher {
 }
 
 (async () => {
-    const p1 = `mov up, down`
+    const p1 = `mov up, acc\nmov acc, down`
 
     let unit = new ComputingUnit()
     unit.compile(p1)
 
     const test = {
-         in: { 0: [1, 2, 3, 4] },
-        out: { 0: [2, 4, 6, 8] }
+         in: { 0: [1, 2, 3, 4, 5] },
+        out: { 0: [2, 4, 6, 8, 10] }
     }
 
     const g = new GeneticSearcher()
