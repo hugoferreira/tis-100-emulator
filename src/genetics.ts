@@ -3,17 +3,11 @@ import * as _ from 'lodash'
 import { ComputingUnit } from './unit';
 
 export class GeneticMutator {
-  private mutations
-  private mutateProbability
-  private changeOpProbability
-  private registerProbability
-
-  constructor(mutations: number = 1, mutateProbability = 0.9, changeOpProbability = 0.5, registerProbability = 0.3) {
-    this.mutations = mutations
-    this.mutateProbability = mutateProbability
-    this.changeOpProbability = changeOpProbability
-    this.registerProbability = registerProbability
-  }
+  constructor(readonly mutations = 1,
+              readonly mutateProbability = 0.9,
+              readonly changeOpProbability = 0.5,
+              readonly registerProbability = 0.3,
+              readonly maxProgramSize = 10) { }
 
   public mutate(program: Line[]): Line[] {
     let copy = program != undefined ? _.clone(program) : []
@@ -82,7 +76,7 @@ export class GeneticMutator {
   private addRemoveLine(program: Line[]): Line[] {
     if (program.length > 0 && Math.random() < 0.5 || program.length == 15)
       program.splice(Math.floor(Math.random() * program.length), 1)
-    else
+    else if (program.length < this.maxProgramSize)
       program.splice(Math.floor(Math.random() * program.length), 0, this.generateLine(program))
     return program
   }
