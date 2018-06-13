@@ -15,7 +15,9 @@ export async function evaluate(testSuite: TestSuite,
     units = units.concat(ins).concat(outs)
 
     const simulate = async () => {
-        while (outs.every((out, ix) => out.result.length !== testSuite.out[ix].length)) {
+        let maximumSteps = 100
+        let steps = 0
+        while (steps++ < maximumSteps && outs.every((out, ix) => out.result.length !== testSuite.out[ix].length)) {
             await Promise.race(units.map(u => u.step()))
         }
 

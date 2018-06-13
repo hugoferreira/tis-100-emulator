@@ -2,15 +2,14 @@ import { AsyncQueue } from './lib/AsyncQueue'
 import { UserInterface } from './consoleui'
 import { ComputingUnit, Source } from './unit'
 import { GeneticMutator, GeneticSplicer } from './genetics'
-import { Compile, SingletonOps } from './language';
+import { Compile, Decompile, SingletonOps } from './language';
+import { evaluate } from './evaluate';
 
 (async () => {
-    const p1 = `mov 5, acc
-                add acc
-                sub acc
-                add 20
-                mov  acc,    right
-                sub  right `
+    const p1 = `mov up, down
+                mov up, down
+                mov up, down
+                mov up, down`
 
     const p2 = `sub left
                 add 10
@@ -27,24 +26,17 @@ import { Compile, SingletonOps } from './language';
                  nop
                  jro acc`
 
-    const unitsArray = [0, 1, 2].map(r => [0, 1, 2, 3].map(c => new ComputingUnit()));
+    let mutator = new GeneticMutator()
 
-    [0, 1].forEach(r => [0, 1, 2].forEach(c => {
-            unitsArray[r][c].right = unitsArray[r][c + 1].left
-            unitsArray[r][c].down  = unitsArray[r + 1][c].up
-    }))
+    let unit = new ComputingUnit()
+    unit.compile(p1)
 
-    unitsArray[0][0].compile(p1)
-    unitsArray[0][1].compile(p2)
-    unitsArray[0][2].compile(p3)
-    unitsArray[0][3].compile(p4)
+    while (true) {
+        let result = await evaluate({in: [[1,2], [2,3], [7, 8]], out: [[3], [5], [15]]}, [unit], [unit.up], [unit.down])
+            console.log(result)
+            console.log(unit.program)
+        let program = mutator.mutate(unit.program)
+        unit.compile(program != undefined ? Decompile(program) : "")    
+    }
 
-    let mutator = new GeneticMutator(10)
-    let splicer = new GeneticSplicer(mutator)
-    let spliced = splicer.splice(unitsArray, unitsArray)
-
-    new Source([10, 20, 30, 40], spliced[0][0].up)
-
-    const gui = new UserInterface(spliced)
-    gui.run()
 })()
