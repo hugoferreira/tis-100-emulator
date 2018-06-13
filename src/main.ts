@@ -30,8 +30,8 @@ import { Compile, SingletonOps } from './language';
     const unitsArray = [0, 1, 2].map(r => [0, 1, 2, 3].map(c => new ComputingUnit()));
 
     [0, 1].forEach(r => [0, 1, 2].forEach(c => {
-            unitsArray[r][c].right = unitsArray[r][c + 1].left
-            unitsArray[r][c].down  = unitsArray[r + 1][c].up
+        unitsArray[r][c].right = unitsArray[r][c + 1].left
+        unitsArray[r][c].down  = unitsArray[r + 1][c].up
     }))
 
     unitsArray[0][0].compile(p1)
