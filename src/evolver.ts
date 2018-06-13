@@ -53,7 +53,7 @@ class GeneticSearcher {
 
     selectMates(pool: Array<{ specimen: Genome, score: number }>): [Genome, Genome] {
         const sel1 = _.random(_.head(pool).score, _.last(pool).score - 1, false), sel2 = _.random(_.head(pool).score, _.last(pool).score - 1, false)
-        return [ _.findLast(pool, (e) => e.score < sel1).specimen, _.findLast(pool, (e) => e.score < sel2).specimen ]
+        return [ _.find(pool, (e) => e.score > sel1).specimen, _.findLast(pool, (e) => e.score > sel2).specimen ]
     }
 
     crossoverPopulation(sortedPop: Array<{ specimen: Genome, score: number }>, killN: number = 10, topN: number = 10) {
