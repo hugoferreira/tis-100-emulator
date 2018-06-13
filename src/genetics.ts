@@ -6,7 +6,7 @@ export class GeneticMutator {
   constructor(readonly mutations = 1,
               readonly mutateProbability = 0.9,
               readonly changeOpProbability = 0.5,
-              readonly registerProbability = 0.3,
+              readonly registerProbability = 0.7,
               readonly alterlinesProbability = 0.1,
               readonly maxProgramSize = 10) { }
 
@@ -48,7 +48,7 @@ export class GeneticMutator {
     if (is(line.op, Jumps)) return { op: line.op, a: this.generateAddress(program) }
   }
 
-  private generateLine(program: Line[]): Line {
+  public generateLine(program: Line[]): Line {
     let op = _.sample(Ops)
     if (is(op, SingletonOps)) return { op }
     if (is(op, UnaryOps)) return { op, a: this.generateNumberOrRegister() }
