@@ -54,7 +54,6 @@ class GeneticSearcher {
     selectMates(pool: Array<{ specimen: Genome, score: number }>): [Genome, Genome] {
         const total = _.last(pool).score
         const sel1 = _.random(_.head(pool).score, _.last(pool).score - 1, false), sel2 = _.random(_.head(pool).score, _.last(pool).score - 1, false)
-        console.log(sel1 + " " + sel2)
         return [ _.findLast(pool, (e) => e.score < sel1).specimen, _.findLast(pool, (e) => e.score < sel2).specimen ]
     }
 
@@ -63,7 +62,6 @@ class GeneticSearcher {
         _.map(pool, (num, i) => pool[i].score += (i > 0 ? pool[i - 1].score : Math.abs(_.head(pool).score)));
 
         return _.range(0, sortedPop.length - topN).map(n => {
-            console.log(pool)
             const [a, b] = this.selectMates(pool)
             return this.splicer.splice(a, b)
         })
