@@ -51,13 +51,15 @@ class GeneticSearcher {
     }
 
     selectMates(pool: Array<{ specimen: Genome, score: number }>): [Genome, Genome] {
-        const sel1 = _.random(_.head(pool).score, _.last(pool).score - 1, false), sel2 = _.random(_.head(pool).score, _.last(pool).score - 1, false)
-        return [ _.findLast(pool, (e) => e.score < sel1).specimen, _.findLast(pool, (e) => e.score < sel2).specimen ]
+        const sel1 = _.random(0, _.last(pool).score - 1, false), sel2 = _.random(0, _.last(pool).score - 1, false)
+        return [ _.find(pool, (e) => e.score > sel1).specimen, _.find(pool, (e) => e.score > sel2).specimen ]
     }
 
     crossoverPopulation(sortedPop: Array<{ specimen: Genome, score: number }>, killN: number = 10, topN: number = 10) {
         const pool = _.drop(sortedPop, killN)
-        _.map(pool, (num, i) => pool[i].score += (i > 0 ? pool[i - 1].score : Math.abs(_.head(pool).score)))
+        const first = _.head(pool).score
+        if (first < 0) _.map(pool, (num, i) => pool[i].score -= first)
+        _.map(pool, (num, i) => pool[i].score += (i > 0 ? pool[i - 1].score : 0))
 
         return _.range(0, sortedPop.length - topN).map(n => {
             const [a, b] = this.selectMates(pool)
