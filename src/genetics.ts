@@ -1,14 +1,26 @@
-import { Line, Register, Ops, Registers, is, SingletonOps, UnaryOps, BinaryOps, Jumps, Decompile } from './language'
+import { Line, Register, Ops, Registers, is, SingletonOps, UnaryOps, BinaryOps, Jumps, Decompile, Op } from './language'
 import * as _ from 'lodash'
 import { ComputingUnit } from './unit';
 
 export class GeneticMutator {
+  ops: Array<{ op: string, v: number}>
+
   constructor(readonly mutations = 1,
               readonly mutateProbability = 0.9,
               readonly changeOpProbability = 0.5,
               readonly registerProbability = 0.7,
               readonly alterlinesProbability = 0.1,
-              readonly maxProgramSize = 10) { }
+              readonly maxProgramSize = 10) {
+
+    this.ops = _.sortBy([
+      { op: 'MOV', v: 10 },  { op: 'ADD', v: 10 }, { op: 'SUB', v: 10 },
+      { op: 'JRO', v: 0.5 }, { op: 'JEZ', v: 1 }, { op: 'JNZ', v: 1 },
+      { op: 'JLZ', v: 1 },   { op: 'JGZ', v: 1 }, { op: 'JMP', v: 1 },
+      { op: 'NOP', v: 0 },   { op: 'NEG', v: 1 }, { op: 'SAV', v: 1 },
+      { op: 'SWP', v: 1 }], o => o.v)
+
+    _.map(this.ops, (num, i) => this.ops[i].v += (i > 0 ? this.ops[i - 1].v : 0))
+  }
 
   public mutate(program: Line[]): Line[] {
     let copy = program != undefined ? _.clone(program) : []
@@ -49,9 +61,7 @@ export class GeneticMutator {
   }
 
   private randomOp() {
-    const ops = _.sortBy([{op: 'MOV', v: 10}, {op: 'ADD', v: 2}, {op: 'SUB', v: 3}, {op: 'JRO', v: 4}, {op: 'JEZ', v: 5}, {op: 'JNZ', v: 6}, {op: 'JLZ', v: 7}, {op: 'JGZ', v: 8}, {op: 'JMP', v: 9}, {op: 'NOP', v: 10}, {op: 'NEG', v: 11}, {op: 'SAV', v: 12}, {op: 'SWP', v: 13}], (o) => o.v)
-    _.map(ops, (num, i) => ops[i].v += (i > 0 ? ops[i - 1].v : 0))
-    return _.findLast(ops, (e) => e.v < _.random(0, _.last(ops).v - 1, false)).op
+    return _.findLast(this.ops, (e) => e.v < _.random(0, _.last(this.ops).v - 1, false)).op
   }
 
   private generateLine(program: Line[]): Line {

@@ -17,7 +17,7 @@ class GeneticSearcher {
     fitness(specimen: Genome,
               result: { [key: number]: number[] },
             expected: { [key: number]: number[] }) {
-        const alpha = 10
+        const alpha = 50
         const beta = 20
         const gamma = 10
 
@@ -81,8 +81,8 @@ class GeneticSearcher {
     unit.compile(p1)
 
     const test = {
-         in: { 0: [1, 2, 3, 4, 5] },
-        out: { 0: [2, 4, 6, 8, 10] }
+         in: { 0: [1, 4, 1, 3, 2] },
+        out: { 0: [2, 8, 2, 6, 4] }
     }
 
     const g = new GeneticSearcher()
