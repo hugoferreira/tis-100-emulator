@@ -7,17 +7,19 @@ import { evaluate, TestSuite } from './evaluate';
 import * as _ from 'lodash'
 
 type Genome = Line[]
+type GenomeHash = String
 
 class GeneticSearcher {
     mutator = new GeneticMutator()
     splicer = new GeneticSplicer(this.mutator)
+    memoizer = new Map<GenomeHash, number>()
 
     constructor(public populationSize: number = 50) { }
 
     fitness(specimen: Genome,
               result: { [key: number]: number[] },
             expected: { [key: number]: number[] }) {
-        const alpha = 50
+        const alpha = 500
         const beta = 20
         const gamma = 10
 
@@ -38,11 +40,19 @@ class GeneticSearcher {
 
     evaluatePopulation(population: Array<Genome>, test: TestSuite) {
         return Promise.all(population.map(async specimen => {
-            const unit = new ComputingUnit()
-            unit.compile(specimen.length > 0 ? Decompile(specimen) : "")
-            const result = evaluate(test, [unit], [unit.up], [unit.down])
-            const score = (specimen.length > 0) ? this.fitness(specimen, await result, test.out) : 0
-            return { specimen, score }
+            const code = specimen.length > 0 ? Decompile(specimen) : ""
+            if (!this.memoizer.has(code)) {
+                const unit = new ComputingUnit()
+                unit.compile(code)
+
+                const result = evaluate(test, [unit], [unit.up], [unit.down])
+                const score = (specimen.length > 0) ? this.fitness(specimen, await result, test.out) : 0
+                this.memoizer.set(code, score)
+
+                return { specimen, score }
+            } else {
+                return { specimen, score: this.memoizer.get(code)}
+            }
         }))
     }
 
@@ -77,14 +87,14 @@ class GeneticSearcher {
 }
 
 (async () => {
-    const p1 = `mov up, acc\nmov acc, down`
+    const p1 = `mov up, acc\nadd acc\nmov acc, down`
 
     let unit = new ComputingUnit()
     unit.compile(p1)
 
     const test = {
-         in: { 0: [1, 4, 1, 3, 2] },
-        out: { 0: [2, 8, 2, 6, 4] }
+         in: { 0: [10, 40, 10, 30, 20] },
+        out: { 0: [21, 81, 21, 61, 41] }
     }
 
     const g = new GeneticSearcher()
