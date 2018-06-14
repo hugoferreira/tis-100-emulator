@@ -8,12 +8,12 @@ export class GeneticMutator {
   constructor(readonly mutations = 1,
               readonly mutateProbability = 0.9,
               readonly changeOpProbability = 0.5,
-              readonly registerProbability = 0.7,
+              readonly registerProbability = 0.9,
               readonly alterlinesProbability = 0.1,
               readonly maxProgramSize = 10) {
 
     this.ops = _.sortBy([
-      { op: 'MOV', v: 10 },  { op: 'ADD', v: 10 }, { op: 'SUB', v: 10 },
+      { op: 'MOV', v: 100 },  { op: 'ADD', v: 100 }, { op: 'SUB', v: 100 },
       { op: 'JRO', v: 0.5 }, { op: 'JEZ', v: 1 }, { op: 'JNZ', v: 1 },
       { op: 'JLZ', v: 1 },   { op: 'JGZ', v: 1 }, { op: 'JMP', v: 1 },
       { op: 'NOP', v: 0 },   { op: 'NEG', v: 1 }, { op: 'SAV', v: 1 },
@@ -84,11 +84,11 @@ export class GeneticMutator {
   }
 
   private generateNumber(): number {
-    return Math.floor(Math.random() * 20 - 10)
+    return _.random(-5, 5, false)
   }
 
   private generateAddress(program: Line[]): number {
-    return Math.floor(Math.random() * program.length)
+    return _.random(0, program.length - 1, false)
   }
 
   private addRemoveLine(program: Line[]): Line[] {

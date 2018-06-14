@@ -21,7 +21,7 @@ class GeneticSearcher {
             expected: { [key: number]: number[] }) {
         const alpha = 500
         const beta = 20
-        const gamma = 10
+        const gamma = 1
 
         const outUnits = Object.keys(expected)
         const match = _.sum(outUnits.map(out =>
@@ -117,5 +117,7 @@ class GeneticSearcher {
             bestSpecimen = localBest
             console.log(`[${localBest.score}] ${Decompile(localBest.specimen)}`)
         }
+        if (generation % 1000 == 0)
+            console.log(`[${localBest.score}] ${Decompile(localBest.specimen)}`)
     }
 })()
