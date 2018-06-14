@@ -8,7 +8,7 @@ export class GeneticMutator {
   constructor(readonly mutations = 1,
               readonly mutateProbability = 0.9,
               readonly changeOpProbability = 0.5,
-              readonly registerProbability = 0.9,
+              readonly registerProbability = 0.7,
               readonly alterlinesProbability = 0.1,
               readonly maxProgramSize = 10) {
 

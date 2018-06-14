@@ -82,7 +82,7 @@ class GeneticSearcher {
     let unit = new ComputingUnit()
     unit.compile(p1)
 
-    const test = { in: { 0: [1, 2, 3, 4, 5] }, out: { 0: [2, 3, 4, 5, 6] } }
+    const test = { in: { 0: [10, 20, 30, 40, 50] }, out: { 0: [11, 21, 31, 41, 51] } }
 
     const g = new GeneticSearcher()
     const pop = g.seedPopulation(unit.program)
