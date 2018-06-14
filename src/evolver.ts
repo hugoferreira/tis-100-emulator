@@ -60,9 +60,9 @@ class GeneticSearcher {
         return _.takeRight(sortedPop, topN)
     }
 
-    selectMates(pool: Array<{ specimen: Genome, score: number }>): [Genome, Genome] {
-        const sel1 = _.random(0, _.last(pool).score - 1, false), sel2 = _.random(0, _.last(pool).score - 1, false)
-        return [ _.find(pool, (e) => e.score > sel1).specimen, _.find(pool, (e) => e.score > sel2).specimen ]
+    selectMate(pool: Array<{ specimen: Genome, score: number }>): Genome {
+        const sel = _.random(0, _.last(pool).score - 1, false)
+        return _.find(pool, (e) => e.score > sel).specimen
     }
 
     crossoverPopulation(sortedPop: Array<{ specimen: Genome, score: number }>, killN: number = 10, topN: number = 10) {
@@ -71,10 +71,9 @@ class GeneticSearcher {
         if (first < 0) _.map(pool, (num, i) => pool[i].score -= first)
         _.map(pool, (num, i) => pool[i].score += (i > 0 ? pool[i - 1].score : 0))
 
-        return _.range(0, sortedPop.length - topN).map(n => {
-            const [a, b] = this.selectMates(pool)
-            return this.splicer.splice(a, b)
-        })
+        return _.range(0, sortedPop.length - topN).map(
+            n => this.splicer.splice(this.selectMate(pool), this.selectMate(pool))
+        )
     }
 
     async newPool(pop: Array<Genome>, test: TestSuite) {
