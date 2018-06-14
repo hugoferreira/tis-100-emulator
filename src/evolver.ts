@@ -41,18 +41,18 @@ class GeneticSearcher {
     evaluatePopulation(population: Array<Genome>, test: TestSuite) {
         return Promise.all(population.map(async specimen => {
             const code = specimen.length > 0 ? Decompile(specimen) : ""
-            if (!this.memoizer.has(code)) {
+            let score = this.memoizer.get(code)
+
+            if (score == undefined) {
                 const unit = new ComputingUnit()
                 unit.compile(code)
 
                 const result = evaluate(test, [unit], [unit.up], [unit.down])
-                const score = (specimen.length > 0) ? this.fitness(specimen, await result, test.out) : 0
+                score = (specimen.length > 0) ? this.fitness(specimen, await result, test.out) : 0
                 this.memoizer.set(code, score)
-
-                return { specimen, score }
-            } else {
-                return { specimen, score: this.memoizer.get(code)}
             }
+
+            return { specimen, score }
         }))
     }
 
@@ -87,7 +87,7 @@ class GeneticSearcher {
 }
 
 (async () => {
-    const p1 = `mov up, acc\nadd acc\nmov acc, down`
+    const p1 = `mov up, acc\nmov acc, down`
 
     let unit = new ComputingUnit()
     unit.compile(p1)
@@ -104,20 +104,16 @@ class GeneticSearcher {
     let bestSpecimen = { score: -Infinity, specimen: unit.program }
     let generation = 0
 
-    // console.log(g.fitness(Compile(`mov 4, down`)[0], { 0: [4] }, { 0: [2, 4, 6, 8] }))
-
-    while(generation++ < 10000) {
+    while(generation++ < 100000) {
         newPool = await g.newPool(newPool, test);
         const scores = _.sortBy((await g.evaluatePopulation(newPool, test)), p => p.score)
 
-        console.debug(`Epoch ${generation} Best: ${bestSpecimen.score} Pool Average: ${_.sumBy(scores, p => p.score) / scores.length}`)
+        if (generation % 1000 == 0) console.debug(`Epoch ${generation} Best: ${bestSpecimen.score} Pool Average: ${_.sumBy(scores, p => p.score) / scores.length}`)
 
         const localBest = _.last(scores)
         if (localBest.score > bestSpecimen.score) {
             bestSpecimen = localBest
             console.log(`[${localBest.score}] ${Decompile(localBest.specimen)}`)
         }
-        if (generation % 1000 == 0)
-            console.log(`[${localBest.score}] ${Decompile(localBest.specimen)}`)
     }
 })()
