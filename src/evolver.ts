@@ -10,8 +10,8 @@ type Genome = Line[]
 type GenomeHash = String
 
 class GeneticSearcher {
-    readonly alpha = 500
-    readonly beta = 20
+    readonly alpha = 50
+    readonly beta = 5
     readonly gamma = 1
     readonly delta = -1000
     readonly epsilon = -0.01

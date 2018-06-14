@@ -6,8 +6,8 @@ export class GeneticMutator {
   ops: Array<{ op: string, v: number}>
 
   constructor(readonly mutations = 1,
-              readonly mutateProbability = 0.9,
-              readonly changeOpProbability = 0.5,
+              readonly mutateProbability = 0.8,
+              readonly changeOpProbability = 0.3,
               readonly registerProbability = 0.7,
               readonly alterlinesProbability = 0.1,
               readonly maxProgramSize = 10) {
@@ -32,9 +32,9 @@ export class GeneticMutator {
   private mutateOne(program: Line[]): Line[] {
     if (program.length > 0 && Math.random() < this.mutateProbability)
       return this.mutateExisting(program)
-    else if (Math.random() < this.alterlinesProbability) {
+    else if (Math.random() < this.alterlinesProbability)
       return this.addRemoveLine(program)
-    }
+    return program
   }
 
   private mutateExisting(program: Line[]): Line[] {
@@ -61,7 +61,7 @@ export class GeneticMutator {
   }
 
   private randomOp() {
-    return _.findLast(this.ops, (e) => e.v < _.random(0, _.last(this.ops).v - 1, false)).op
+    return _.find(this.ops, (e) => e.v > _.random(0, _.last(this.ops).v - 1, false)).op
   }
 
   private generateLine(program: Line[]): Line {
@@ -101,10 +101,11 @@ export class GeneticMutator {
 }
 
 export class GeneticSplicer {
-  constructor(readonly mutator: GeneticMutator, readonly spliceBias = 0.2) {  }
+  constructor(readonly mutator: GeneticMutator) {  }
 
   public splice(parent1: Line[], parent2: Line[]): Line[] {
-    const child = _.zip(parent1, parent2).map(p => Math.random() < this.spliceBias ? p[0] || p[1] : p[1] || p[0])
+    const splicePoint = _.random(0, Math.max(parent1.length, parent2.length))
+    const child = parent1.slice(0, splicePoint).concat(parent2.slice(splicePoint))
     return this.mutator.mutate(child.filter(l => l != undefined)) || []
   }
 }
