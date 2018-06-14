@@ -13,7 +13,7 @@ export class GeneticMutator {
               readonly maxProgramSize = 10) {
 
     this.ops = _.sortBy([
-      { op: 'MOV', v: 100 },  { op: 'ADD', v: 100 }, { op: 'SUB', v: 100 },
+      { op: 'MOV', v: 10 },  { op: 'ADD', v: 100 }, { op: 'SUB', v: 100 },
       { op: 'JRO', v: 0.5 }, { op: 'JEZ', v: 1 }, { op: 'JNZ', v: 1 },
       { op: 'JLZ', v: 1 },   { op: 'JGZ', v: 1 }, { op: 'JMP', v: 1 },
       { op: 'NOP', v: 0 },   { op: 'NEG', v: 1 }, { op: 'SAV', v: 1 },

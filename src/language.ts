@@ -1,4 +1,5 @@
 import * as P from 'parsimmon'
+import * as _ from 'lodash'
 
 export type BinaryOp = 'MOV'
 export const BinaryOps: BinaryOp[] = ['MOV']
@@ -28,6 +29,8 @@ export type Line =
   | { op: BinaryOp, a: number | Register, b: Register }
   | { op: Jump, a: number }
 
+export type Program = Line[]
+
 const keywords = <T extends string>(ss: T[]) => P.alt(...ss.map(P.string)).trim(P.optWhitespace) as P.Parser<T>
 
 export const Lang = P.createLanguage({
@@ -50,7 +53,7 @@ export const Lang = P.createLanguage({
               _: ()  => P.optWhitespace
 })
 
-export function Decompile(program: Line[]) {
+export function Decompile(program: Program) {
     return program.map(line => {
         if ('b' in line)
             return `${line.op} ${line.a}, ${line.b}`
@@ -61,7 +64,7 @@ export function Decompile(program: Line[]) {
     }).join('\n')
 }
 
-export function Compile(source: String): [Line[], number[]] {
+export function Compile(source: String): [Program, number[]] {
     // FIXME: Let the grammar handle the trims and casing
     // FIXME: Migrate to a typed grammar
     const firstStage = Lang.Program.tryParse(source.toUpperCase()) as Array<any>
@@ -79,4 +82,69 @@ export function Compile(source: String): [Line[], number[]] {
     })
 
     return [result as Line[], mappings]
+}
+
+function isNumber(value: Register | number) {
+    return !isNaN(Number(value.toString()))
+}
+
+function Peephole(p: Program): Program {
+    if (p == undefined || p.length == 0) return []
+
+    const [a, ...a_remaining] = p
+
+    if (a.op == 'SUB' && isNumber(a.a)) {
+        return [{ op: 'ADD', a: (-<number>a.a) }, ...a_remaining]
+    }
+
+    if (a.op == 'SUB' && a.a == 'ACC') {
+        return [{ op: 'MOV', a: 0, b: 'ACC' }, ...a_remaining]
+    }
+
+    if (a.op == 'MOV' && a.a == 'NIL' && a.b == 'ACC') {
+        return [{ op: 'MOV', a: 0, b: 'ACC' }, ...a_remaining]
+    }
+
+    if (a.op == 'MOV' && (a.a == 'NIL' || a.a == 'ACC') && a.b == 'NIL') {
+        return a_remaining
+    }
+
+    if (a.op == 'MOV' && (a.a == 'ACC') && a.b == 'ACC') {
+        return a_remaining
+    }
+
+    const [b, ...ab_remaining] = a_remaining
+
+    if (b != undefined) {
+        if (a.op == 'ADD' && b.op == 'ADD' && isNumber(a.a) && isNumber(b.a)) {
+            return [{ op: 'ADD', a: (<number>a.a + <number>b.a) }, ...ab_remaining]
+        }
+
+        if (a.op == 'MOV' && b.op == 'MOV' && isNumber(a.a) && isNumber(b.a) && a.b == 'ACC' && b.b == 'ACC') {
+            return [{ op: 'MOV', a: b.a, b: 'ACC' }, ...ab_remaining]
+        }
+
+        if (a.op == 'SWP' && b.op == 'SWP') {
+            return ab_remaining
+        }
+
+        if (a.op == 'NEG' && b.op == 'NEG') {
+            return ab_remaining
+        }
+    }
+
+    return [a, ...Optimize(a_remaining)]
+}
+
+export function Optimize(p: Program): Program {
+    if (p == undefined || p.length == 0) return []
+
+    let newSolution: Program
+
+    do {
+        p = newSolution || p
+        newSolution = Peephole(p)
+    } while (!_.isEqual(newSolution, p))
+
+    return p
 }

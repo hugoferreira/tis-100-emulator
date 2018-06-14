@@ -2,18 +2,18 @@ import { AsyncQueue } from './lib/AsyncQueue'
 import { UserInterface } from './consoleui'
 import { ComputingUnit, Source } from './unit'
 import { GeneticMutator, GeneticSplicer } from './genetics'
-import { Compile, Decompile, SingletonOps, Line } from './language';
+import { Compile, Decompile, SingletonOps, Program, Optimize } from './language';
 import { evaluate, TestSuite, TestResult } from './evaluate';
 import * as _ from 'lodash'
 
-type Genome = Line[]
+type Genome = Program
 type GenomeHash = String
 
 class GeneticSearcher {
     readonly alpha = 50
     readonly beta = 5
     readonly gamma = 1
-    readonly delta = -1000
+    readonly delta = -5
     readonly epsilon = -0.01
 
     mutator = new GeneticMutator()
