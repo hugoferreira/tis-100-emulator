@@ -3,35 +3,40 @@ import { UserInterface } from './consoleui'
 import { ComputingUnit, Source } from './unit'
 import { GeneticMutator, GeneticSplicer } from './genetics'
 import { Compile, Decompile, SingletonOps, Line } from './language';
-import { evaluate, TestSuite } from './evaluate';
+import { evaluate, TestSuite, TestResult } from './evaluate';
 import * as _ from 'lodash'
 
 type Genome = Line[]
 type GenomeHash = String
 
 class GeneticSearcher {
+    readonly alpha = 500
+    readonly beta = 20
+    readonly gamma = 1
+    readonly delta = -1000
+    readonly epsilon = -0.01
+
     mutator = new GeneticMutator()
     splicer = new GeneticSplicer(this.mutator)
     memoizer = new Map<GenomeHash, number>()
 
-    constructor(public populationSize: number = 50) { }
+    constructor(public populationSize: number = 100) { }
 
-    fitness(specimen: Genome,
-              result: { [key: number]: number[] },
-            expected: { [key: number]: number[] }) {
-        const alpha = 500
-        const beta = 20
-        const gamma = 1
-
+    fitness(specimen: Genome, result: TestResult, expected: { [key: number]: number[] }) {
         const outUnits = Object.keys(expected)
         const match = _.sum(outUnits.map(out =>
-            _.zip(expected[out], result[out]).filter(p => p[0] === p[1]).length
+            _.zip(expected[out], result.out[out]).filter(p => p[0] === p[1]).length
         ))
 
-        const lenghts = _.sum(outUnits.map(out => -Math.abs(expected[out].length - result[out].length)))
+        const lenghts = _.sum(outUnits.map(out => -Math.abs(expected[out].length - result.out[out].length)))
 
         const programSize = 1 / specimen.length
-        return alpha * match + beta * lenghts + ((specimen.length > 0) ? gamma * programSize : 0)
+
+        return this.alpha * match +
+               this.beta * lenghts +
+               ((specimen.length > 0) ? this.gamma * programSize : 0) +
+               this.epsilon * result.statistics.cycles +
+               this.delta * _.sum(result.statistics.inputLeft)
     }
 
     seedPopulation(seed: Genome) {
@@ -62,13 +67,14 @@ class GeneticSearcher {
 
     selectMate(pool: Array<{ specimen: Genome, score: number }>): Genome {
         const sel = _.random(0, _.last(pool).score - 1, false)
-        return _.find(pool, (e) => e.score > sel).specimen
+        return _.find(pool, (e) => e.score >= sel).specimen
     }
 
     crossoverPopulation(sortedPop: Array<{ specimen: Genome, score: number }>, killN: number = 10, topN: number = 10) {
         const pool = _.drop(sortedPop, killN)
         const first = _.head(pool).score
         if (first < 0) _.map(pool, (num, i) => pool[i].score -= first)
+
         _.map(pool, (num, i) => pool[i].score += (i > 0 ? pool[i - 1].score : 0))
 
         return _.range(0, sortedPop.length - topN).map(
@@ -92,8 +98,8 @@ class GeneticSearcher {
     unit.compile(p1)
 
     const test = {
-         in: { 0: [10, 40, 10, 30, 20] },
-        out: { 0: [21, 81, 21, 61, 41] }
+         in: { 0: [15, 7, 10, 2, 20] },
+        out: { 0: [31, 15, 21, 5, 41] }
     }
 
     const g = new GeneticSearcher()

@@ -12,7 +12,7 @@ export interface Unit {
 export class Source implements Unit {
     status: UnitStatus = 'IDLE'
 
-    constructor(private input: Array<number>, private register: AsyncQueue<number>) { }
+    constructor(public input: Array<number>, private register: AsyncQueue<number>) { }
 
     async step() {
         if (this.status == 'RUN' || this.status == 'IDLE') {

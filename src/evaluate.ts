@@ -5,12 +5,19 @@ import * as _ from 'lodash'
 export type TestSuite = {  in: { [key: number]: number[] },
                           out: { [key: number]: number[] } }
 
+export type TestResult = {
+    out: { [key: number]: number[] }
+    statistics?: {
+        cycles?: number
+        inputLeft?: number[]
+    }
+}
 
 export async function evaluate(testSuite: TestSuite,
                                units: Array<Unit>,
                                inputs: RegisterQueue[],
                                outputs: RegisterQueue[],
-                               maximumSteps = 100): Promise<{ [key: number]: number[] }>  {
+                               maximumSteps = 100): Promise<TestResult>  {
 
     const ins = inputs.map((port, ix) => new Source(_.clone(testSuite.in[ix]), port))
     const outs = outputs.map((port, ix) => new Sink(port))
@@ -23,8 +30,19 @@ export async function evaluate(testSuite: TestSuite,
             await Promise.race(units.map(u => u.step()))
         }
 
-        return outs.map(out => out.result)
+        return {
+            outputs: outs.map(out => out.result),
+            steps: steps
+        }
     }
 
-    return (await simulate()).reduce((acc, out, ix) => ({...acc, [ix]: out }), {})
+    const results = await simulate()
+
+    return {
+        out: (results.outputs).reduce((acc, out, ix) => ({...acc, [ix]: out }), {}),
+        statistics: {
+            cycles: results.steps,
+            inputLeft: ins.map(i => i.input.length)
+        }
+    }
 }
